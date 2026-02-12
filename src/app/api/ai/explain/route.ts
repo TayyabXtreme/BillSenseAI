@@ -34,9 +34,17 @@ async function callGemini(prompt: string): Promise<string | null> {
 
 export async function POST(req: NextRequest) {
   try {
-    const { bill } = await req.json();
+    const { bill, language } = await req.json();
+
+    const langInstruction = language === "urdu"
+      ? "IMPORTANT: Respond ENTIRELY in Urdu (اردو) script. Use simple Urdu that a common person can understand."
+      : language === "hindi"
+        ? "IMPORTANT: Respond ENTIRELY in Hindi (हिंदी) script. Use simple Hindi that a common person can understand."
+        : "Respond in simple English.";
 
     const prompt = `You are a friendly utility bill advisor. Explain this utility bill in simple words for a normal user. Be conversational and helpful.
+
+${langInstruction}
 
 Bill Details:
 - Type: ${bill.billType} bill

@@ -59,6 +59,11 @@ import {
   Pencil,
   Trash2,
   Type,
+  CheckCircle2,
+  Circle,
+  Clock,
+  AlertCircle,
+  ListTodo,
 } from "lucide-react";
 
 export function AppSidebar() {
@@ -93,8 +98,23 @@ export function AppSidebar() {
   const renameBillMutation = useMutation(api.bills.renameBill);
   const updateBillMutation = useMutation(api.bills.updateBill);
 
+  const markAsPaid = useMutation(api.bills.markBillAsPaid);
+
+  const upcomingBills = useQuery(
+    api.bills.getUpcomingBills,
+    user ? { userId: user.id } : "skip"
+  );
+
+  const overdueBills = useQuery(
+    api.bills.getOverdueBills,
+    user ? { userId: user.id } : "skip"
+  );
+
   const analyzedCount =
     bills?.filter((b) => b.status === "analyzed").length || 0;
+
+  const unpaidCount = (bills?.filter((b) => b.dueDate && !b.isPaid).length) || 0;
+  const overdueCount = overdueBills?.length || 0;
 
   // Focus rename input when dialog opens
   useEffect(() => {
@@ -374,6 +394,89 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 )}
               </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarSeparator className="bg-border" />
+
+          {/* Payment Todo */}
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-muted-foreground text-[10px] uppercase tracking-wider px-2 flex items-center gap-2">
+              <ListTodo className="h-3 w-3" />
+              Payment Todo
+              {(unpaidCount > 0 || overdueCount > 0) && (
+                <span className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                  overdueCount > 0
+                    ? "bg-red-500/15 text-red-500"
+                    : "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400"
+                }`}>
+                  {overdueCount > 0 ? `${overdueCount} overdue` : `${unpaidCount} due`}
+                </span>
+              )}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <div className="px-2 py-1 space-y-1 group-data-[collapsible=icon]:hidden">
+                {/* Overdue bills */}
+                {overdueBills && overdueBills.length > 0 && overdueBills.slice(0, 3).map((bill) => (
+                  <div
+                    key={bill._id}
+                    className="flex items-center gap-2 p-2 rounded-lg bg-red-500/5 border border-red-500/10 group/todo"
+                  >
+                    <button
+                      onClick={() => markAsPaid({ billId: bill._id as Id<"bills">, isPaid: true })}
+                      className="shrink-0 text-red-500 hover:text-green-500 transition-colors"
+                    >
+                      <AlertCircle className="h-3.5 w-3.5" />
+                    </button>
+                    <Link href={`/dashboard/${bill._id}`} className="flex-1 min-w-0">
+                      <p className="text-[11px] font-medium text-foreground truncate">
+                        {bill.name || bill.month}
+                      </p>
+                      <p className="text-[9px] text-red-500">Overdue · {bill.totalAmount.toLocaleString()} PKR</p>
+                    </Link>
+                  </div>
+                ))}
+                {/* Upcoming bills */}
+                {upcomingBills && upcomingBills.length > 0 && upcomingBills.slice(0, 3).map((bill) => (
+                  <div
+                    key={bill._id}
+                    className="flex items-center gap-2 p-2 rounded-lg bg-glass border border-border hover:bg-glass-strong transition-colors group/todo"
+                  >
+                    <button
+                      onClick={() => markAsPaid({ billId: bill._id as Id<"bills">, isPaid: true })}
+                      className="shrink-0 text-muted-foreground hover:text-green-500 transition-colors"
+                    >
+                      <Circle className="h-3.5 w-3.5" />
+                    </button>
+                    <Link href={`/dashboard/${bill._id}`} className="flex-1 min-w-0">
+                      <p className="text-[11px] font-medium text-foreground truncate">
+                        {bill.name || bill.month}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-2.5 w-2.5" />
+                        Due {bill.dueDate} · {bill.totalAmount.toLocaleString()} PKR
+                      </p>
+                    </Link>
+                  </div>
+                ))}
+                {/* Recently paid */}
+                {bills && bills.filter((b) => b.isPaid).slice(0, 2).map((bill) => (
+                  <div
+                    key={bill._id + "-paid"}
+                    className="flex items-center gap-2 p-2 rounded-lg opacity-60"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                    <p className="text-[11px] text-muted-foreground truncate line-through">
+                      {bill.name || bill.month}
+                    </p>
+                  </div>
+                ))}
+                {(!upcomingBills || upcomingBills.length === 0) && (!overdueBills || overdueBills.length === 0) && (!bills || !bills.some((b) => b.isPaid)) && (
+                  <p className="text-[10px] text-muted-foreground text-center py-2">
+                    Set due dates on bills to track payments
+                  </p>
+                )}
+              </div>
             </SidebarGroupContent>
           </SidebarGroup>
 

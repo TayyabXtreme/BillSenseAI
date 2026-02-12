@@ -67,6 +67,8 @@ export const updateUser = mutation({
     location: v.optional(v.string()),
     avgMonthlyBill: v.optional(v.number()),
     preferredBillType: v.optional(v.string()),
+    whatsappNumber: v.optional(v.string()),
+    preferredLanguage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const user = await ctx.db

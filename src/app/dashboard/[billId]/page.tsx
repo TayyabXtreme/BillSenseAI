@@ -43,15 +43,21 @@ import {
   BadgeDollarSign,
   Download,
   FileSpreadsheet,
+  CheckCircle2,
+  Clock,
+  Globe,
+  Send,
 } from "lucide-react";
 import Link from "next/link";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import ReactMarkdown from "react-markdown";
 
 const appliances = [
   { name: "Air Conditioner", reduction: 25, icon: "\u2744\uFE0F" },
@@ -78,6 +84,8 @@ export default function BillDetailPage({
   );
 
   const updateExplanation = useMutation(api.bills.updateBillExplanation);
+  const markAsPaid = useMutation(api.bills.markBillAsPaid);
+  const setBillDueDate = useMutation(api.bills.setBillDueDate);
 
   const [explanation, setExplanation] = useState("");
   const [tips, setTips] = useState<string[]>([]);
@@ -85,6 +93,9 @@ export default function BillDetailPage({
   const [tipsLoading, setTipsLoading] = useState(false);
   const [usageReduction, setUsageReduction] = useState([0]);
   const [disabledAppliances, setDisabledAppliances] = useState<string[]>([]);
+  const [dueDate, setDueDate] = useState("");
+  const [language, setLanguage] = useState("english");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
 
   const displayExplanation = explanation || bill?.aiExplanation || "";
   const displayTips = tips.length > 0 ? tips : bill?.aiTips || [];
@@ -351,6 +362,7 @@ export default function BillDetailPage({
             billDate: bill.billDate,
             month: bill.month,
           },
+          language,
         }),
       });
       if (!response.ok) throw new Error("Failed to get explanation");
@@ -387,6 +399,7 @@ export default function BillDetailPage({
             billDate: bill.billDate,
             month: bill.month,
           },
+          language,
         }),
       });
       if (!response.ok) throw new Error("Failed to get tips");
@@ -481,6 +494,48 @@ export default function BillDetailPage({
             <span className="hidden sm:inline">PDF</span>
           </Button>
         </div>
+      </div>
+
+      {/* Payment & Due Date Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 rounded-xl bg-glass border border-border">
+        <div className="flex items-center gap-3 flex-1">
+          <button
+            onClick={() => markAsPaid({ billId: billId as Id<"bills">, isPaid: !bill.isPaid })}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              bill.isPaid
+                ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                : "bg-glass-strong text-muted-foreground border border-border hover:text-foreground"
+            }`}
+          >
+            {bill.isPaid ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
+            {bill.isPaid ? "Paid" : "Mark as Paid"}
+          </button>
+          {bill.isPaid && bill.paidDate && (
+            <span className="text-[10px] text-muted-foreground">Paid on {bill.paidDate}</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-muted-foreground shrink-0">Due:</label>
+          <Input
+            type="date"
+            value={dueDate || bill.dueDate || ""}
+            onChange={(e) => {
+              setDueDate(e.target.value);
+              setBillDueDate({ billId: billId as Id<"bills">, dueDate: e.target.value });
+              toast.success("Due date set!");
+            }}
+            className="bg-glass border-glass-border text-foreground rounded-lg h-8 text-xs w-36 dark:[color-scheme:dark] [color-scheme:light]"
+          />
+        </div>
+        {bill.dueDate && !bill.isPaid && (
+          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+            bill.dueDate < new Date().toISOString().split("T")[0]
+              ? "bg-red-500/10 text-red-500"
+              : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+          }`}>
+            {bill.dueDate < new Date().toISOString().split("T")[0] ? "Overdue!" : `Due ${bill.dueDate}`}
+          </span>
+        )}
       </div>
 
       {/* Key Metrics Row */}
@@ -774,6 +829,31 @@ export default function BillDetailPage({
               <Sparkles className={`h-5 w-5 ${displayExplanation ? "text-green-400" : "text-muted-foreground"}`} />
             </div>
 
+            {/* Language Selector */}
+            <div className="flex items-center gap-2 mb-4">
+              <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Language:</span>
+              <div className="flex gap-1">
+                {[
+                  { code: "english", label: "English" },
+                  { code: "urdu", label: "اردو" },
+                  { code: "hindi", label: "हिंदी" },
+                ].map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => setLanguage(lang.code)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                      language === lang.code
+                        ? "bg-glass-strong text-foreground border border-foreground/20"
+                        : "bg-glass text-muted-foreground border border-border hover:bg-glass-strong"
+                    }`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {!displayExplanation && (
               <Button onClick={handleExplain} disabled={loading} className="w-full bg-white text-black hover:bg-neutral-200 h-12 font-semibold shadow-lg shadow-white/5 mb-4 text-sm">
                 {loading ? (
@@ -793,12 +873,14 @@ export default function BillDetailPage({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">AI Explanation</p>
-                      <div className="text-sm text-neutral-600 dark:text-neutral-200 leading-relaxed whitespace-pre-line">{displayExplanation}</div>
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-sm text-neutral-600 dark:text-neutral-200 leading-relaxed [&_h1]:text-base [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:mt-4 [&_h1]:mb-2 [&_h2]:text-sm [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:mt-3 [&_h2]:mb-1.5 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-2 [&_h3]:mb-1 [&_p]:mb-2 [&_p]:leading-relaxed [&_ul]:my-2 [&_ul]:pl-4 [&_ul]:space-y-1 [&_ol]:my-2 [&_ol]:pl-4 [&_ol]:space-y-1 [&_li]:text-sm [&_li]:text-neutral-600 [&_li]:dark:text-neutral-300 [&_li]:marker:text-muted-foreground [&_strong]:text-foreground [&_strong]:font-semibold [&_em]:italic [&_em]:text-neutral-500 [&_em]:dark:text-neutral-400 [&_code]:text-xs [&_code]:bg-glass [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-foreground [&_hr]:my-3 [&_hr]:border-border [&_blockquote]:border-l-2 [&_blockquote]:border-foreground/20 [&_blockquote]:pl-3 [&_blockquote]:my-2 [&_blockquote]:text-muted-foreground [&_blockquote]:italic [&_table]:w-full [&_table]:text-xs [&_th]:text-left [&_th]:py-1.5 [&_th]:px-2 [&_th]:border-b [&_th]:border-border [&_th]:text-foreground [&_th]:font-semibold [&_td]:py-1.5 [&_td]:px-2 [&_td]:border-b [&_td]:border-border/50">
+                        <ReactMarkdown>{displayExplanation}</ReactMarkdown>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button onClick={handleExplain} variant="outline" size="sm" disabled={loading} className="bg-glass text-muted-foreground border-glass-border gap-1 hover:bg-glass-strong">
                     <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />Regenerate
                   </Button>
@@ -808,6 +890,41 @@ export default function BillDetailPage({
                       Get Savings Tips
                     </Button>
                   )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20 hover:bg-green-500/20 gap-1"
+                    onClick={() => {
+                      const text = encodeURIComponent(
+                        `📊 *${bill.name || bill.billType + " Bill"}*\n` +
+                        `💰 Total: ${bill.totalAmount.toLocaleString()} PKR\n` +
+                        `⚡ Units: ${bill.unitsConsumed}\n` +
+                        `📅 ${bill.month}\n\n` +
+                        (displayExplanation ? `🤖 *AI Analysis:*\n${displayExplanation.substring(0, 500)}\n\n` : "") +
+                        (displayTips.length > 0 ? `💡 *Tips:*\n${displayTips.slice(0, 3).map((t, i) => `${i + 1}. ${t}`).join("\n")}` : "")
+                      );
+                      const phone = whatsappNumber.replace(/\D/g, "");
+                      const url = phone
+                        ? `https://wa.me/${phone}?text=${text}`
+                        : `https://wa.me/?text=${text}`;
+                      window.open(url, "_blank");
+                    }}
+                  >
+                    <Send className="h-3 w-3" />
+                    WhatsApp
+                  </Button>
+                </div>
+
+                {/* WhatsApp number input */}
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    type="tel"
+                    value={whatsappNumber}
+                    onChange={(e) => setWhatsappNumber(e.target.value)}
+                    placeholder="+92 3XX XXXXXXX"
+                    className="bg-glass border-glass-border text-foreground rounded-lg h-7 text-[11px] flex-1 max-w-[200px]"
+                  />
+                  <span className="text-[10px] text-muted-foreground">Optional: enter number</span>
                 </div>
               </div>
             )}
@@ -824,7 +941,9 @@ export default function BillDetailPage({
                 {displayTips.map((tip, i) => (
                   <div key={i} className="rounded-xl p-4 flex items-start gap-3 bg-glass hover:bg-glass-strong transition-colors border border-border group">
                     <span className="shrink-0 w-7 h-7 rounded-lg bg-glass-strong group-hover:bg-glass-hover flex items-center justify-center text-xs font-bold text-foreground transition-colors">{i + 1}</span>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">{tip}</p>
+                    <div className="flex-1 min-w-0 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed [&_p]:mb-1 [&_p:last-child]:mb-0 [&_strong]:text-foreground [&_strong]:font-semibold [&_code]:text-xs [&_code]:bg-glass [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_ul]:pl-4 [&_ul]:my-1 [&_ol]:pl-4 [&_ol]:my-1 [&_li]:text-sm">
+                      <ReactMarkdown>{tip}</ReactMarkdown>
+                    </div>
                   </div>
                 ))}
               </div>

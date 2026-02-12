@@ -34,9 +34,17 @@ async function callGemini(prompt: string): Promise<string | null> {
 
 export async function POST(req: NextRequest) {
   try {
-    const { bill } = await req.json();
+    const { bill, language } = await req.json();
+
+    const langInstruction = language === "urdu"
+      ? "IMPORTANT: Write ALL tips in Urdu (اردو) script. Use simple everyday Urdu."
+      : language === "hindi"
+        ? "IMPORTANT: Write ALL tips in Hindi (हिंदी) script. Use simple everyday Hindi."
+        : "Write tips in simple English.";
 
     const prompt = `You are an energy savings expert. Based on this utility bill data, provide exactly 5 practical, actionable tips to reduce the bill. Each tip should be specific and easy to follow.
+
+${langInstruction}
 
 Bill Details:
 - Type: ${bill.billType}

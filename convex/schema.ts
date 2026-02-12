@@ -11,6 +11,8 @@ export default defineSchema({
     location: v.optional(v.string()),
     avgMonthlyBill: v.optional(v.number()),
     preferredBillType: v.optional(v.string()),
+    whatsappNumber: v.optional(v.string()),
+    preferredLanguage: v.optional(v.string()),
   }).index("by_clerk_id", ["clerkId"]),
 
   bills: defineTable({
@@ -29,7 +31,29 @@ export default defineSchema({
     aiExplanation: v.optional(v.string()),
     aiTips: v.optional(v.array(v.string())),
     status: v.string(),
+    // Payment tracking
+    dueDate: v.optional(v.string()),
+    isPaid: v.optional(v.boolean()),
+    paidDate: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
     .index("by_user_date", ["userId", "billDate"]),
+
+  budgets: defineTable({
+    userId: v.string(),
+    billType: v.string(),
+    monthlyLimit: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_type", ["userId", "billType"]),
+
+  reminders: defineTable({
+    userId: v.string(),
+    billId: v.id("bills"),
+    message: v.string(),
+    reminderDate: v.string(),
+    isTriggered: v.boolean(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_date", ["reminderDate"]),
 });
