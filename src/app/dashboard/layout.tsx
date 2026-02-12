@@ -1,6 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useEffect } from "react";
@@ -10,8 +11,10 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import {
   SidebarProvider,
   SidebarInset,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { ChevronRight, LayoutDashboard, FileText } from "lucide-react";
+import { ChevronRight, LayoutDashboard, FileText, Zap } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 function DashboardBreadcrumb() {
   const pathname = usePathname();
@@ -70,8 +73,34 @@ export default function DashboardLayout({
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset className="bg-transparent min-h-screen">
-            {/* Top bar - breadcrumb only */}
-            <header className="sticky top-0 z-40 flex items-center h-12 px-5 border-b border-border bg-header backdrop-blur-2xl">
+            {/* Mobile Header Bar */}
+            <header className="sticky top-0 z-40 flex md:hidden items-center justify-between h-14 px-4 border-b border-border bg-header backdrop-blur-2xl">
+              <div className="flex items-center gap-3">
+                <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+                <Link href="/dashboard" className="flex items-center gap-2">
+                  <div className="p-1 rounded-md bg-glass-strong border border-border">
+                    <Zap className="h-4 w-4 text-foreground" />
+                  </div>
+                  <span className="text-sm font-bold text-foreground">
+                    BillSense<span className="text-muted-foreground font-normal">.ai</span>
+                  </span>
+                </Link>
+              </div>
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <UserButton
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      avatarBox: "h-7 w-7",
+                    },
+                  }}
+                />
+              </div>
+            </header>
+
+            {/* Desktop Top bar - breadcrumb only */}
+            <header className="sticky top-0 z-40 hidden md:flex items-center h-12 px-5 border-b border-border bg-header backdrop-blur-2xl">
               <DashboardBreadcrumb />
             </header>
 

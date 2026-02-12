@@ -10,7 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 const navLinks = [
   { label: "Features", href: "#features" },
   { label: "How it Works", href: "#how-it-works" },
-  { label: "Pricing", href: "#cta" },
+  { label: "Pricing", href: "#pricing" },
 ];
 
 export function Navbar() {
