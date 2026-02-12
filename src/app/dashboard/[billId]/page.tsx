@@ -22,6 +22,7 @@ import {
 import {
   Zap,
   Flame,
+  Droplets,
   Brain,
   Sparkles,
   Loader2,
@@ -40,11 +41,17 @@ import {
   BarChart3,
   Gauge,
   BadgeDollarSign,
+  Download,
+  FileSpreadsheet,
 } from "lucide-react";
 import Link from "next/link";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { saveAs } from "file-saver";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const appliances = [
   { name: "Air Conditioner", reduction: 25, icon: "\u2744\uFE0F" },
@@ -169,6 +176,163 @@ export default function BillDetailPage({
     );
   };
 
+  // ── Download as Excel ──
+  const handleDownloadExcel = () => {
+    const billData = [
+      ["Field", "Value"],
+      ["Bill Name", bill.name || `${bill.billType.charAt(0).toUpperCase() + bill.billType.slice(1)} Bill`],
+      ["Bill Type", bill.billType.charAt(0).toUpperCase() + bill.billType.slice(1)],
+      ["Month", bill.month || "N/A"],
+      ["Bill Date", bill.billDate || "N/A"],
+      ["Units Consumed", bill.unitsConsumed],
+      ["Tariff Rate (PKR/unit)", bill.tariffRate],
+      ["Base Amount (PKR)", bill.baseAmount],
+      ["Taxes (PKR)", bill.taxes],
+      ["Extra Charges (PKR)", bill.extraCharges],
+      ["Total Amount (PKR)", bill.totalAmount],
+      ["Status", bill.status === "analyzed" ? "AI Analyzed" : "Draft"],
+      ["Daily Avg Usage", `~${dailyUsage.toFixed(1)} units/day`],
+    ];
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(billData);
+    ws["!cols"] = [{ wch: 22 }, { wch: 35 }];
+    XLSX.utils.book_append_sheet(wb, ws, "Bill Details");
+
+    // AI Analysis sheet
+    if (displayExplanation || displayTips.length > 0) {
+      const aiData: (string | number)[][] = [["AI Analysis Report"]];
+      aiData.push([]);
+      if (displayExplanation) {
+        aiData.push(["AI Explanation"]);
+        aiData.push([displayExplanation]);
+        aiData.push([]);
+      }
+      if (displayTips.length > 0) {
+        aiData.push(["AI Savings Tips"]);
+        displayTips.forEach((tip, i) => aiData.push([`${i + 1}. ${tip}`]));
+      }
+      const wsAI = XLSX.utils.aoa_to_sheet(aiData);
+      wsAI["!cols"] = [{ wch: 80 }];
+      XLSX.utils.book_append_sheet(wb, wsAI, "AI Suggestions");
+    }
+
+    const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([buf], { type: "application/octet-stream" });
+    const fileName = `${bill.name || bill.month || "bill"}_${bill.billType}.xlsx`;
+    saveAs(blob, fileName);
+    toast.success("Excel downloaded!");
+  };
+
+  // ── Download as PDF ──
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    const billTitle = bill.name || `${bill.billType.charAt(0).toUpperCase() + bill.billType.slice(1)} Bill`;
+
+    // Header
+    doc.setFillColor(17, 17, 17);
+    doc.rect(0, 0, 210, 38, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text("Utility Bill Report", 14, 18);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${billTitle}  \u2022  ${bill.month || "N/A"}`, 14, 28);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 34);
+
+    let y = 48;
+
+    // Bill Details table
+    doc.setTextColor(40, 40, 40);
+    autoTable(doc, {
+      startY: y,
+      head: [["Field", "Value"]],
+      body: [
+        ["Bill Type", bill.billType.charAt(0).toUpperCase() + bill.billType.slice(1)],
+        ["Month", bill.month || "N/A"],
+        ["Bill Date", bill.billDate || "N/A"],
+        ["Units Consumed", `${bill.unitsConsumed} units`],
+        ["Tariff Rate", `${bill.tariffRate} PKR/unit`],
+        ["Base Amount", `${bill.baseAmount.toLocaleString()} PKR`],
+        ["Taxes", `${bill.taxes.toLocaleString()} PKR`],
+        ["Extra Charges", `${bill.extraCharges.toLocaleString()} PKR`],
+        ["Total Amount", `${bill.totalAmount.toLocaleString()} PKR`],
+      ],
+      headStyles: { fillColor: [30, 30, 30], textColor: [255, 255, 255], fontSize: 10, fontStyle: "bold" },
+      bodyStyles: { fontSize: 9, textColor: [50, 50, 50] },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      columnStyles: { 0: { fontStyle: "bold", cellWidth: 50 }, 1: { cellWidth: 80 } },
+      margin: { left: 14, right: 14 },
+      theme: "grid",
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    y = (doc as any).lastAutoTable.finalY + 12;
+
+    // AI Explanation
+    if (displayExplanation) {
+      if (y > 240) { doc.addPage(); y = 20; }
+      doc.setFillColor(240, 240, 240);
+      doc.roundedRect(14, y, 182, 8, 2, 2, "F");
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 30, 30);
+      doc.text("\uD83E\uDDE0 AI Explanation", 18, y + 6);
+      y += 14;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(60, 60, 60);
+      const lines = doc.splitTextToSize(displayExplanation, 175);
+      for (const line of lines) {
+        if (y > 275) { doc.addPage(); y = 20; }
+        doc.text(line, 18, y);
+        y += 5;
+      }
+      y += 6;
+    }
+
+    // AI Tips
+    if (displayTips.length > 0) {
+      if (y > 240) { doc.addPage(); y = 20; }
+      doc.setFillColor(240, 240, 240);
+      doc.roundedRect(14, y, 182, 8, 2, 2, "F");
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 30, 30);
+      doc.text("\uD83D\uDCA1 AI Savings Tips", 18, y + 6);
+      y += 14;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(60, 60, 60);
+      displayTips.forEach((tip, i) => {
+        const tipLines = doc.splitTextToSize(`${i + 1}. ${tip}`, 170);
+        for (const line of tipLines) {
+          if (y > 275) { doc.addPage(); y = 20; }
+          doc.text(line, 20, y);
+          y += 5;
+        }
+        y += 2;
+      });
+    }
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let p = 1; p <= pageCount; p++) {
+      doc.setPage(p);
+      doc.setFontSize(7);
+      doc.setTextColor(160, 160, 160);
+      doc.text("Utility Bill Analyzer \u2022 AI-Powered Report", 14, 290);
+      doc.text(`Page ${p}/${pageCount}`, 190, 290, { align: "right" });
+    }
+
+    const fileName = `${bill.name || bill.month || "bill"}_${bill.billType}.pdf`;
+    doc.save(fileName);
+    toast.success("PDF downloaded!");
+  };
+
   const handleExplain = async () => {
     setLoading(true);
     try {
@@ -270,13 +434,15 @@ export default function BillDetailPage({
           <div className="p-3 rounded-xl bg-glass-strong border border-border">
             {bill.billType === "electricity" ? (
               <Zap className="h-6 w-6 text-yellow-400" />
+            ) : bill.billType === "water" ? (
+              <Droplets className="h-6 w-6 text-blue-400" />
             ) : (
               <Flame className="h-6 w-6 text-orange-400" />
             )}
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-              {bill.billType.charAt(0).toUpperCase() + bill.billType.slice(1)} Bill
+              {bill.name || `${bill.billType.charAt(0).toUpperCase() + bill.billType.slice(1)} Bill`}
             </h1>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
@@ -292,6 +458,28 @@ export default function BillDetailPage({
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Download Buttons */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            onClick={handleDownloadExcel}
+            variant="outline"
+            size="sm"
+            className="bg-glass text-foreground border-border hover:bg-glass-strong gap-1.5 text-xs"
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5 text-green-500" />
+            <span className="hidden sm:inline">Excel</span>
+          </Button>
+          <Button
+            onClick={handleDownloadPDF}
+            variant="outline"
+            size="sm"
+            className="bg-glass text-foreground border-border hover:bg-glass-strong gap-1.5 text-xs"
+          >
+            <Download className="h-3.5 w-3.5 text-red-400" />
+            <span className="hidden sm:inline">PDF</span>
+          </Button>
         </div>
       </div>
 

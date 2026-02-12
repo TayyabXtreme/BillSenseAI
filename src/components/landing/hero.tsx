@@ -49,7 +49,7 @@ export function Hero() {
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
-              Upload your electricity or gas bill, and let AI break down every
+              Upload your electricity, gas, or water bill, and let AI break down every
               charge in plain language. Get <span className="text-foreground font-medium">personalized tips</span> to
               slash your next bill.
             </p>

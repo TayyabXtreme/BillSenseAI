@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUser, UserButton } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
 import { toast } from "sonner";
 import { BillInput, type BillData } from "@/components/dashboard/bill-input";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -30,7 +31,18 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Zap,
   LayoutDashboard,
@@ -39,9 +51,14 @@ import {
   BarChart3,
   Sparkles,
   Flame,
+  Droplets,
   FileText,
   ChevronsLeft,
   ChevronsRight,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Type,
 } from "lucide-react";
 
 export function AppSidebar() {
@@ -52,15 +69,39 @@ export function AppSidebar() {
   const [showNewAnalysis, setShowNewAnalysis] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Bill management state
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedBill, setSelectedBill] = useState<any>(null);
+  const [newName, setNewName] = useState("");
+  const [editFields, setEditFields] = useState({
+    unitsConsumed: "",
+    tariffRate: "",
+    extraCharges: "",
+    billDate: "",
+  });
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
   const bills = useQuery(
     api.bills.getRecentBills,
     user ? { userId: user.id, limit: 10 } : "skip"
   );
 
   const createBill = useMutation(api.bills.createBill);
+  const deleteBillMutation = useMutation(api.bills.deleteBill);
+  const renameBillMutation = useMutation(api.bills.renameBill);
+  const updateBillMutation = useMutation(api.bills.updateBill);
 
   const analyzedCount =
     bills?.filter((b) => b.status === "analyzed").length || 0;
+
+  // Focus rename input when dialog opens
+  useEffect(() => {
+    if (renameDialogOpen && renameInputRef.current) {
+      setTimeout(() => renameInputRef.current?.focus(), 100);
+    }
+  }, [renameDialogOpen]);
 
   const handleBillSubmit = async (data: BillData) => {
     if (!user) return;
@@ -89,6 +130,94 @@ export function AppSidebar() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleRename = async () => {
+    if (!selectedBill || !newName.trim()) return;
+    try {
+      await renameBillMutation({
+        billId: selectedBill._id as Id<"bills">,
+        name: newName.trim(),
+      });
+      toast.success("Bill renamed!");
+      setRenameDialogOpen(false);
+    } catch {
+      toast.error("Failed to rename bill.");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedBill) return;
+    try {
+      await deleteBillMutation({
+        billId: selectedBill._id as Id<"bills">,
+      });
+      toast.success("Bill deleted!");
+      setDeleteDialogOpen(false);
+      // If we're viewing this bill, redirect to dashboard
+      if (pathname === `/dashboard/${selectedBill._id}`) {
+        router.push("/dashboard");
+      }
+    } catch {
+      toast.error("Failed to delete bill.");
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!selectedBill) return;
+    try {
+      const u = parseFloat(editFields.unitsConsumed);
+      const t = parseFloat(editFields.tariffRate);
+      const e = parseFloat(editFields.extraCharges) || 0;
+
+      if (!u || u <= 0 || !t || t <= 0) {
+        toast.error("Please enter valid units and tariff.");
+        return;
+      }
+
+      const baseAmount = u * t;
+      const taxes = baseAmount * 0.05;
+      const totalAmount = baseAmount + taxes + e;
+      const date = new Date(editFields.billDate);
+
+      await updateBillMutation({
+        billId: selectedBill._id as Id<"bills">,
+        unitsConsumed: u,
+        tariffRate: t,
+        extraCharges: e,
+        taxes,
+        totalAmount,
+        baseAmount,
+        billDate: editFields.billDate,
+        month: date.toLocaleString("default", { month: "long", year: "numeric" }),
+      });
+      toast.success("Bill updated!");
+      setEditDialogOpen(false);
+    } catch {
+      toast.error("Failed to update bill.");
+    }
+  };
+
+  const openRenameDialog = (bill: any) => {
+    setSelectedBill(bill);
+    setNewName(bill.name || bill.month || "");
+    setRenameDialogOpen(true);
+  };
+
+  const openDeleteDialog = (bill: any) => {
+    setSelectedBill(bill);
+    setDeleteDialogOpen(true);
+  };
+
+  const openEditDialog = (bill: any) => {
+    setSelectedBill(bill);
+    setEditFields({
+      unitsConsumed: bill.unitsConsumed?.toString() || "",
+      tariffRate: bill.tariffRate?.toString() || "",
+      extraCharges: bill.extraCharges?.toString() || "0",
+      billDate: bill.billDate || new Date().toISOString().split("T")[0],
+    });
+    setEditDialogOpen(true);
   };
 
   return (
@@ -183,30 +312,55 @@ export function AppSidebar() {
               <SidebarMenu>
                 {bills && bills.length > 0 ? (
                   bills.slice(0, 8).map((bill) => (
-                    <SidebarMenuItem key={bill._id}>
+                    <SidebarMenuItem key={bill._id} className="group/bill relative">
                       <SidebarMenuButton
                         asChild
                         isActive={pathname === `/dashboard/${bill._id}`}
-                        className="h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-glass-hover data-[active=true]:bg-glass-strong data-[active=true]:text-foreground transition-colors"
+                        className="h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-glass-hover data-[active=true]:bg-glass-strong data-[active=true]:text-foreground transition-colors pr-8"
                       >
                         <Link href={`/dashboard/${bill._id}`}>
                           {bill.billType === "electricity" ? (
                             <Zap className="h-3.5 w-3.5 text-yellow-500 dark:text-yellow-400/70" />
+                          ) : bill.billType === "water" ? (
+                            <Droplets className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400/70" />
                           ) : (
                             <Flame className="h-3.5 w-3.5 text-orange-500 dark:text-orange-400/70" />
                           )}
-                          <span className="text-sm truncate">{bill.month}</span>
+                          <span className="text-sm truncate">{bill.name || bill.month}</span>
                         </Link>
                       </SidebarMenuButton>
-                      <SidebarMenuBadge
-                        className={`text-[9px] ${
-                          bill.status === "analyzed"
-                            ? "text-green-500 dark:text-green-400"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {bill.status === "analyzed" ? "\u2713" : "\u25CF"}
-                      </SidebarMenuBadge>
+                      {/* Actions dropdown */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-md opacity-0 group-hover/bill:opacity-100 hover:bg-glass-strong text-muted-foreground hover:text-foreground transition-all group-data-[collapsible=icon]:hidden">
+                            <MoreHorizontal className="h-3.5 w-3.5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40 bg-background border-border">
+                          <DropdownMenuItem
+                            onClick={() => openRenameDialog(bill)}
+                            className="text-sm gap-2 cursor-pointer"
+                          >
+                            <Type className="h-3.5 w-3.5" />
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => openEditDialog(bill)}
+                            className="text-sm gap-2 cursor-pointer"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-border" />
+                          <DropdownMenuItem
+                            onClick={() => openDeleteDialog(bill)}
+                            className="text-sm gap-2 cursor-pointer text-red-500 focus:text-red-500"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </SidebarMenuItem>
                   ))
                 ) : (
@@ -303,6 +457,167 @@ export function AppSidebar() {
               isLoading={isSubmitting}
             />
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rename Dialog */}
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <DialogContent className="sm:max-w-[400px] bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Type className="h-4 w-4 text-muted-foreground" />
+              Rename Bill
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-sm">
+              Give this bill a custom name for easier identification.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              ref={renameInputRef}
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="e.g., January Electricity"
+              className="bg-glass border-glass-border text-foreground rounded-xl"
+              onKeyDown={(e) => e.key === "Enter" && handleRename()}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setRenameDialogOpen(false)}
+              className="border-border text-foreground hover:bg-glass-hover"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRename}
+              disabled={!newName.trim()}
+              className="bg-foreground text-background hover:bg-foreground/90"
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[450px] bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-muted-foreground" />
+              Edit Bill
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-sm">
+              Update the bill details. Total will be recalculated.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm text-foreground">Units Consumed</label>
+                <Input
+                  type="number"
+                  value={editFields.unitsConsumed}
+                  onChange={(e) => setEditFields({ ...editFields, unitsConsumed: e.target.value })}
+                  className="bg-glass border-glass-border text-foreground rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm text-foreground">Tariff Rate (PKR)</label>
+                <Input
+                  type="number"
+                  value={editFields.tariffRate}
+                  onChange={(e) => setEditFields({ ...editFields, tariffRate: e.target.value })}
+                  className="bg-glass border-glass-border text-foreground rounded-xl"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm text-foreground">Extra Charges (PKR)</label>
+                <Input
+                  type="number"
+                  value={editFields.extraCharges}
+                  onChange={(e) => setEditFields({ ...editFields, extraCharges: e.target.value })}
+                  className="bg-glass border-glass-border text-foreground rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm text-foreground">Bill Date</label>
+                <Input
+                  type="date"
+                  value={editFields.billDate}
+                  onChange={(e) => setEditFields({ ...editFields, billDate: e.target.value })}
+                  className="bg-glass border-glass-border text-foreground rounded-xl dark:[color-scheme:dark] [color-scheme:light]"
+                />
+              </div>
+            </div>
+            {/* Live total preview */}
+            {editFields.unitsConsumed && editFields.tariffRate && (
+              <div className="bg-glass-strong border border-glass-border rounded-xl p-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">New Total</span>
+                  <span className="font-bold text-foreground">
+                    {(() => {
+                      const u = parseFloat(editFields.unitsConsumed) || 0;
+                      const t = parseFloat(editFields.tariffRate) || 0;
+                      const e = parseFloat(editFields.extraCharges) || 0;
+                      const base = u * t;
+                      return (base + base * 0.05 + e).toLocaleString("en-PK", { maximumFractionDigits: 0 });
+                    })()}{" "}
+                    <span className="text-xs font-normal text-muted-foreground">PKR</span>
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              className="border-border text-foreground hover:bg-glass-hover"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleEdit}
+              className="bg-foreground text-background hover:bg-foreground/90"
+            >
+              Update Bill
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[400px] bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Trash2 className="h-4 w-4 text-red-500" />
+              Delete Bill
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-sm">
+              Are you sure you want to delete &ldquo;{selectedBill?.name || selectedBill?.month}&rdquo;? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              className="border-border text-foreground hover:bg-glass-hover"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDelete}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

@@ -120,7 +120,7 @@ export function BillHistory({ bills, onDelete }: BillHistoryProps) {
           >
             <div className="flex items-center gap-3">
               <span className="text-lg">
-                {bill.billType === "electricity" ? "⚡" : "🔥"}
+                {bill.billType === "electricity" ? "⚡" : bill.billType === "water" ? "💧" : "🔥"}
               </span>
               <div>
                 <p className="text-sm font-medium text-white">{bill.month}</p>

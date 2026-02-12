@@ -8,8 +8,10 @@ import {
   Loader2,
   Zap,
   Flame,
+  Droplets,
   X,
   Check,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 export interface BillData {
-  billType: "electricity" | "gas";
+  billType: "electricity" | "gas" | "water";
   unitsConsumed: number;
   tariffRate: number;
   extraCharges: number;
@@ -36,7 +38,7 @@ interface BillInputProps {
 }
 
 export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
-  const [billType, setBillType] = useState<"electricity" | "gas">("electricity");
+  const [billType, setBillType] = useState<"electricity" | "gas" | "water">("electricity");
   const [units, setUnits] = useState("");
   const [tariff, setTariff] = useState("10");
   const [extra, setExtra] = useState("0");
@@ -46,6 +48,7 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrText, setOcrText] = useState("");
+  const [ocrExtracted, setOcrExtracted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const calculateBill = useCallback(
@@ -88,9 +91,10 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
         month: "long",
         year: "numeric",
       }),
+      ocrRawText: ocrText || undefined,
     });
 
-    toast.success("Bill calculated successfully!");
+    toast.success(ocrExtracted ? "Extracted bill submitted!" : "Bill calculated successfully!");
   };
 
   const handleImageUpload = async (
@@ -105,50 +109,55 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
     reader.readAsDataURL(file);
 
     setOcrLoading(true);
-    toast.info("Processing bill image with OCR...");
+    toast.info("Analyzing bill image with AI...");
 
     try {
-      // Use tesseract.js for OCR
-      const Tesseract = await import("tesseract.js");
-      const {
-        data: { text },
-      } = await Tesseract.recognize(file, "eng");
+      // Convert file to base64 and send directly to Gemini Vision API
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onloadend = () => {
+          const result = r.result as string;
+          // Strip the data:image/xxx;base64, prefix
+          resolve(result.split(",")[1]);
+        };
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
 
-      setOcrText(text);
+      const mimeType = file.type || "image/jpeg";
 
-      // Now send OCR text to AI for structured extraction
+      // Send image directly to AI for structured extraction (no tesseract needed)
       const response = await fetch("/api/ai/parse-bill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ocrText: text }),
+        body: JSON.stringify({ imageBase64: base64, mimeType }),
       });
 
       if (response.ok) {
         const parsed = await response.json();
-        setUnits(parsed.unitsConsumed?.toString() || "");
-        setTariff(parsed.tariffRate?.toString() || "10");
-        setExtra(parsed.extraCharges?.toString() || "0");
+        // Set all extracted fields
+        if (parsed.unitsConsumed != null && parsed.unitsConsumed > 0) setUnits(parsed.unitsConsumed.toString());
+        if (parsed.tariffRate != null && parsed.tariffRate > 0) setTariff(parsed.tariffRate.toString());
+        if (parsed.extraCharges != null && parsed.extraCharges > 0) setExtra(parsed.extraCharges.toString());
         if (parsed.billType) setBillType(parsed.billType);
-        toast.success("Bill data extracted successfully!");
+        if (parsed.billDate) setBillDate(parsed.billDate);
+        setOcrExtracted(true);
+        setOcrText("AI Vision extraction");
+
+        if (parsed.unitsConsumed > 0) {
+          toast.success("Bill data extracted successfully! Review and submit below.", { duration: 4000 });
+        } else {
+          toast.success("Some data extracted — please enter units manually.");
+        }
       } else {
-        const errorData = await response.json().catch(() => ({}));
         if (response.status === 503) {
-          toast.warning("AI service is busy. Fields populated from OCR — please verify the numbers.");
+          toast.warning("AI service is busy. Please try again in a moment.");
         } else {
           toast.warning("AI couldn't parse the bill. Please enter the numbers manually.");
         }
-        // Try basic regex extraction as fallback
-        const numbers = text.match(/\d+\.?\d*/g);
-        if (numbers && numbers.length > 0) {
-          setUnits(
-            numbers
-              .find((n) => parseFloat(n) > 10 && parseFloat(n) < 5000)
-              ?.toString() || ""
-          );
-        }
       }
     } catch (error) {
-      console.error("OCR Error:", error);
+      console.error("Image processing error:", error);
       toast.error("Failed to process image. Please try manual entry.");
     } finally {
       setOcrLoading(false);
@@ -158,6 +167,7 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
   const clearUpload = () => {
     setUploadedImage(null);
     setOcrText("");
+    setOcrExtracted(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -181,23 +191,34 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
           onClick={() => setBillType("electricity")}
           className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl transition-all ${
             billType === "electricity"
-              ? "bg-glass-strong border border-glass-border shadow-lg shadow-black/5"
+              ? "bg-yellow-500/15 border border-yellow-500/30 shadow-lg shadow-yellow-500/5"
               : "bg-glass border border-border hover:bg-glass-strong"
           }`}
         >
-          <Zap className="h-4 w-4 text-foreground" />
-          <span className="text-sm font-medium text-foreground">Electricity</span>
+          <Zap className={`h-4 w-4 ${billType === "electricity" ? "text-yellow-500" : "text-foreground"}`} />
+          <span className={`text-sm font-medium ${billType === "electricity" ? "text-yellow-500" : "text-foreground"}`}>Electricity</span>
         </button>
         <button
           onClick={() => setBillType("gas")}
           className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl transition-all ${
             billType === "gas"
-              ? "bg-glass-strong border border-glass-border shadow-lg shadow-black/5"
+              ? "bg-orange-500/15 border border-orange-500/30 shadow-lg shadow-orange-500/5"
               : "bg-glass border border-border hover:bg-glass-strong"
           }`}
         >
-          <Flame className="h-4 w-4" />
-          <span className="text-sm font-medium text-foreground">Gas</span>
+          <Flame className={`h-4 w-4 ${billType === "gas" ? "text-orange-500" : "text-foreground"}`} />
+          <span className={`text-sm font-medium ${billType === "gas" ? "text-orange-500" : "text-foreground"}`}>Gas</span>
+        </button>
+        <button
+          onClick={() => setBillType("water")}
+          className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl transition-all ${
+            billType === "water"
+              ? "bg-blue-500/15 border border-blue-500/30 shadow-lg shadow-blue-500/5"
+              : "bg-glass border border-border hover:bg-glass-strong"
+          }`}
+        >
+          <Droplets className={`h-4 w-4 ${billType === "water" ? "text-blue-500" : "text-foreground"}`} />
+          <span className={`text-sm font-medium ${billType === "water" ? "text-blue-500" : "text-foreground"}`}>Water</span>
         </button>
       </div>
 
@@ -268,7 +289,45 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
             </div>
           )}
 
-          {ocrText && (
+          {ocrExtracted && (
+            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-green-500" />
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">AI Extracted Data</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {units && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <Check className="h-3 w-3 text-green-500" />
+                    <span className="text-muted-foreground">Units:</span>
+                    <span className="text-foreground font-medium">{units}</span>
+                  </div>
+                )}
+                {tariff && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <Check className="h-3 w-3 text-green-500" />
+                    <span className="text-muted-foreground">Tariff:</span>
+                    <span className="text-foreground font-medium">{tariff} PKR</span>
+                  </div>
+                )}
+                {extra && parseFloat(extra) > 0 && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <Check className="h-3 w-3 text-green-500" />
+                    <span className="text-muted-foreground">Extra:</span>
+                    <span className="text-foreground font-medium">{extra} PKR</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 text-xs">
+                  <Check className="h-3 w-3 text-green-500" />
+                  <span className="text-muted-foreground">Type:</span>
+                  <span className="text-foreground font-medium capitalize">{billType}</span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">Review the extracted data below and click Analyze to proceed.</p>
+            </div>
+          )}
+
+          {ocrText && !ocrExtracted && (
             <div className="bg-glass border border-glass-border rounded-xl p-3">
               <p className="text-xs text-muted-foreground mb-1">Extracted Text:</p>
               <p className="text-xs text-neutral-600 dark:text-neutral-300 max-h-20 overflow-y-auto font-mono">
@@ -360,12 +419,21 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
         <Button
           onClick={handleManualSubmit}
           disabled={isLoading || !units}
-          className="w-full bg-white text-black hover:bg-neutral-200 h-11 font-semibold shadow-lg shadow-white/5"
+          className={`w-full h-11 font-semibold shadow-lg ${
+            ocrExtracted 
+              ? "bg-green-600 text-white hover:bg-green-700 shadow-green-500/10" 
+              : "bg-white text-black hover:bg-neutral-200 shadow-white/5"
+          }`}
         >
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
               Processing...
+            </>
+          ) : ocrExtracted ? (
+            <>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Analyze Extracted Bill
             </>
           ) : (
             "Analyze Bill"

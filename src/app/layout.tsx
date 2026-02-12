@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "BillSense AI - Smart Utility Bill Analyzer",
   description:
-    "Understand your electricity and gas bills with AI-powered insights. Upload, analyze, and save on your utility bills.",
+    "Understand your electricity, gas, and water bills with AI-powered insights. Upload, analyze, and save on your utility bills.",
 };
 
 export default function RootLayout({

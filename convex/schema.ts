@@ -15,6 +15,7 @@ export default defineSchema({
 
   bills: defineTable({
     userId: v.string(),
+    name: v.optional(v.string()),
     billType: v.string(),
     unitsConsumed: v.number(),
     tariffRate: v.number(),

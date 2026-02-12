@@ -61,6 +61,42 @@ export const deleteBill = mutation({
   },
 });
 
+export const renameBill = mutation({
+  args: {
+    billId: v.id("bills"),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.billId, { name: args.name });
+  },
+});
+
+export const updateBill = mutation({
+  args: {
+    billId: v.id("bills"),
+    billType: v.optional(v.string()),
+    unitsConsumed: v.optional(v.number()),
+    tariffRate: v.optional(v.number()),
+    extraCharges: v.optional(v.number()),
+    taxes: v.optional(v.number()),
+    totalAmount: v.optional(v.number()),
+    baseAmount: v.optional(v.number()),
+    billDate: v.optional(v.string()),
+    month: v.optional(v.string()),
+    name: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { billId, ...updates } = args;
+    // Remove undefined values
+    const cleanUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([, v]) => v !== undefined)
+    );
+    if (Object.keys(cleanUpdates).length > 0) {
+      await ctx.db.patch(billId, cleanUpdates);
+    }
+  },
+});
+
 export const getRecentBills = query({
   args: { userId: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {

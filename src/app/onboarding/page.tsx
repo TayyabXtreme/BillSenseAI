@@ -303,10 +303,16 @@ export default function OnboardingPage() {
                       desc: "Natural gas bills",
                     },
                     {
-                      value: "both",
+                      value: "water",
+                      emoji: "💧",
+                      label: "Water",
+                      desc: "Water utility bills",
+                    },
+                    {
+                      value: "all",
                       emoji: "📊",
-                      label: "Both",
-                      desc: "I deal with both types",
+                      label: "All Types",
+                      desc: "I deal with all types",
                     },
                   ].map((option) => (
                     <button
