@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useQuery, useMutation } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
@@ -10,9 +10,7 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import {
   SidebarProvider,
   SidebarInset,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
 import { ChevronRight, LayoutDashboard, FileText } from "lucide-react";
 
 function DashboardBreadcrumb() {
@@ -54,7 +52,6 @@ export default function DashboardLayout({
   const { user } = useUser();
   const createUser = useMutation(api.users.createUser);
 
-  // Ensure user exists in Convex
   useEffect(() => {
     if (user) {
       createUser({
@@ -62,9 +59,7 @@ export default function DashboardLayout({
         email: user.primaryEmailAddress?.emailAddress || "",
         name: user.fullName || "User",
         imageUrl: user.imageUrl,
-      }).catch(() => {
-        // User might already exist, that's fine
-      });
+      }).catch(() => {});
     }
   }, [user, createUser]);
 
@@ -75,13 +70,8 @@ export default function DashboardLayout({
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset className="bg-transparent min-h-screen">
-            {/* Top bar */}
-            <header className="sticky top-0 z-40 flex items-center gap-3 h-14 px-4 border-b border-white/[0.06] bg-neutral-950/85 backdrop-blur-2xl">
-              <SidebarTrigger className="h-8 w-8 text-neutral-400 hover:text-white hover:bg-white/[0.06] rounded-lg transition-colors" />
-              <Separator
-                orientation="vertical"
-                className="h-5 bg-white/[0.08]"
-              />
+            {/* Top bar - breadcrumb only */}
+            <header className="sticky top-0 z-40 flex items-center h-12 px-5 border-b border-white/[0.06] bg-neutral-950/85 backdrop-blur-2xl">
               <DashboardBreadcrumb />
             </header>
 
