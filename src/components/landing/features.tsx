@@ -88,15 +88,15 @@ export function Features() {
       <section id="features" className="relative py-20 sm:py-28 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14 sm:mb-20">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.08] text-xs text-neutral-400 font-medium mb-5 uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-glass border border-border text-xs text-muted-foreground font-medium mb-5 uppercase tracking-wider">
               Features
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
               Everything You Need to
               <br className="hidden sm:block" />{" "}
               <span className="gradient-text">Save on Bills</span>
             </h2>
-            <p className="text-neutral-400 max-w-xl mx-auto text-base sm:text-lg leading-relaxed">
+            <p className="text-muted-foreground max-w-xl mx-auto text-base sm:text-lg leading-relaxed">
               Powerful tools to understand, analyze, and optimize your utility
               bills with AI
             </p>
@@ -106,20 +106,20 @@ export function Features() {
             {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className="group relative rounded-2xl p-6 sm:p-7 bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 cursor-default overflow-hidden"
+                className="group relative rounded-2xl p-6 sm:p-7 bg-glass border border-border hover:bg-glass-strong hover:border-glass-border transition-all duration-300 cursor-default overflow-hidden"
               >
                 {/* Gradient glow on hover */}
                 <div
                   className={`absolute inset-0 bg-gradient-to-b ${feature.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
                 />
                 <div className="relative z-10">
-                  <div className="p-3 rounded-xl bg-white/[0.06] w-fit mb-5 group-hover:bg-white/[0.1] transition-colors border border-white/[0.04]">
-                    <feature.icon className="h-5 w-5 text-white" />
+                  <div className="p-3 rounded-xl bg-glass-strong w-fit mb-5 group-hover:bg-glass-hover transition-colors border border-border">
+                    <feature.icon className="h-5 w-5 text-foreground" />
                   </div>
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-2">
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-sm text-neutral-400 leading-relaxed group-hover:text-neutral-300 transition-colors">
+                  <p className="text-sm text-muted-foreground leading-relaxed group-hover:text-foreground/70 transition-colors">
                     {feature.description}
                   </p>
                 </div>
@@ -132,17 +132,17 @@ export function Features() {
       {/* How it Works */}
       <section id="how-it-works" className="relative py-20 sm:py-28 px-4 sm:px-6">
         {/* Divider gradient */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14 sm:mb-20">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.08] text-xs text-neutral-400 font-medium mb-5 uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-glass border border-border text-xs text-muted-foreground font-medium mb-5 uppercase tracking-wider">
               How it works
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
               Four Simple Steps
             </h2>
-            <p className="text-neutral-400 max-w-xl mx-auto text-base sm:text-lg leading-relaxed">
+            <p className="text-muted-foreground max-w-xl mx-auto text-base sm:text-lg leading-relaxed">
               From bill upload to savings &mdash; it takes less than a minute
             </p>
           </div>
@@ -151,30 +151,30 @@ export function Features() {
             {steps.map((step, i) => (
               <div
                 key={step.step}
-                className="group relative rounded-2xl p-7 sm:p-8 bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 overflow-hidden"
+                className="group relative rounded-2xl p-7 sm:p-8 bg-glass border border-border hover:bg-glass-strong hover:border-glass-border transition-all duration-300 overflow-hidden"
               >
                 {/* Step number watermark */}
-                <span className="absolute top-3 right-5 text-[64px] sm:text-[80px] font-black text-white/[0.03] group-hover:text-white/[0.06] transition-colors leading-none select-none pointer-events-none">
+                <span className="absolute top-3 right-5 text-[64px] sm:text-[80px] font-black text-foreground/[0.03] group-hover:text-foreground/[0.06] transition-colors leading-none select-none pointer-events-none">
                   {step.step}
                 </span>
 
                 <div className="relative z-10">
                   {/* Step indicator */}
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-xs font-bold text-neutral-500 bg-white/[0.06] px-2.5 py-1 rounded-md border border-white/[0.06]">
+                    <span className="text-xs font-bold text-muted-foreground bg-glass px-2.5 py-1 rounded-md border border-border">
                       STEP {step.step}
                     </span>
                     {i < steps.length - 1 && (
                       <ArrowRight className="h-3 w-3 text-neutral-600 hidden sm:block" />
                     )}
                   </div>
-                  <div className="p-3 rounded-xl bg-white/[0.06] w-fit mb-4 border border-white/[0.04]">
-                    <step.icon className="h-5 w-5 text-white" />
+                  <div className="p-3 rounded-xl bg-glass-strong w-fit mb-4 border border-border">
+                    <step.icon className="h-5 w-5 text-foreground" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
+                  <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-sm text-neutral-400 leading-relaxed group-hover:text-neutral-300 transition-colors">
+                  <p className="text-sm text-muted-foreground leading-relaxed group-hover:text-foreground/70 transition-colors">
                     {step.description}
                   </p>
                 </div>

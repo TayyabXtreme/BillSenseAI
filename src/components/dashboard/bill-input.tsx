@@ -162,14 +162,14 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
   };
 
   return (
-    <div className="rounded-2xl p-6 bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-lg shadow-black/20">
+    <div className="rounded-2xl p-6 bg-glass border border-border backdrop-blur-xl shadow-lg shadow-black/20">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2.5 rounded-xl bg-white/[0.08] border border-white/[0.06]">
-          <FileText className="h-5 w-5 text-white" />
+        <div className="p-2.5 rounded-xl bg-glass-strong border border-border">
+          <FileText className="h-5 w-5 text-foreground" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">Bill Input</h2>
-          <p className="text-xs text-neutral-400">
+          <h2 className="text-lg font-semibold text-foreground">Bill Input</h2>
+          <p className="text-xs text-muted-foreground">
             Upload a photo or enter details manually
           </p>
         </div>
@@ -181,38 +181,38 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
           onClick={() => setBillType("electricity")}
           className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl transition-all ${
             billType === "electricity"
-              ? "bg-white/[0.12] border border-white/20 shadow-lg shadow-white/5"
-              : "bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08]"
+              ? "bg-glass-strong border border-glass-border shadow-lg shadow-black/5"
+              : "bg-glass border border-border hover:bg-glass-strong"
           }`}
         >
-          <Zap className="h-4 w-4 text-white" />
-          <span className="text-sm font-medium text-white">Electricity</span>
+          <Zap className="h-4 w-4 text-foreground" />
+          <span className="text-sm font-medium text-foreground">Electricity</span>
         </button>
         <button
           onClick={() => setBillType("gas")}
           className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl transition-all ${
             billType === "gas"
-              ? "bg-white/[0.12] border border-white/20 shadow-lg shadow-white/5"
-              : "bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08]"
+              ? "bg-glass-strong border border-glass-border shadow-lg shadow-black/5"
+              : "bg-glass border border-border hover:bg-glass-strong"
           }`}
         >
           <Flame className="h-4 w-4" />
-          <span className="text-sm font-medium text-white">Gas</span>
+          <span className="text-sm font-medium text-foreground">Gas</span>
         </button>
       </div>
 
       <Tabs defaultValue="manual" className="w-full">
-        <TabsList className="w-full bg-white/[0.06] border border-white/[0.1] mb-6 h-11">
+        <TabsList className="w-full bg-glass border border-glass-border mb-6 h-11">
           <TabsTrigger
             value="upload"
-            className="flex-1 data-[state=active]:bg-white/[0.12] data-[state=active]:text-white text-neutral-300 gap-2"
+            className="flex-1 data-[state=active]:bg-glass-strong data-[state=active]:text-foreground text-muted-foreground gap-2"
           >
             <Camera className="h-4 w-4" />
             Upload Photo
           </TabsTrigger>
           <TabsTrigger
             value="manual"
-            className="flex-1 data-[state=active]:bg-white/[0.12] data-[state=active]:text-white text-neutral-300 gap-2"
+            className="flex-1 data-[state=active]:bg-glass-strong data-[state=active]:text-foreground text-muted-foreground gap-2"
           >
             <FileText className="h-4 w-4" />
             Manual Entry
@@ -222,12 +222,12 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
         {/* Upload Tab */}
         <TabsContent value="upload" className="space-y-4">
           {!uploadedImage ? (
-            <label className="flex flex-col items-center justify-center w-full h-48 rounded-xl bg-white/[0.04] border border-dashed border-white/[0.15] cursor-pointer hover:bg-white/[0.08] hover:border-white/[0.25] transition-all group">
-              <Upload className="h-10 w-10 text-neutral-400 group-hover:text-neutral-200 transition-colors mb-3" />
-              <span className="text-sm text-neutral-300 group-hover:text-neutral-200">
+            <label className="flex flex-col items-center justify-center w-full h-48 rounded-xl bg-glass border border-dashed border-glass-border cursor-pointer hover:bg-glass-strong hover:border-foreground/25 transition-all group">
+              <Upload className="h-10 w-10 text-muted-foreground group-hover:text-foreground transition-colors mb-3" />
+              <span className="text-sm text-muted-foreground group-hover:text-foreground">
                 Click to upload or drag & drop
               </span>
-              <span className="text-xs text-neutral-500 mt-1">
+              <span className="text-xs text-muted-foreground mt-1">
                 PNG, JPG up to 10MB
               </span>
               <input
@@ -243,7 +243,7 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
               <img
                 src={uploadedImage}
                 alt="Bill"
-                className="w-full h-48 object-cover rounded-xl border border-white/10"
+                className="w-full h-48 object-cover rounded-xl border border-glass-border"
               />
               <button
                 onClick={clearUpload}
@@ -269,9 +269,9 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
           )}
 
           {ocrText && (
-            <div className="bg-white/[0.05] border border-white/[0.1] rounded-xl p-3">
-              <p className="text-xs text-neutral-400 mb-1">Extracted Text:</p>
-              <p className="text-xs text-neutral-300 max-h-20 overflow-y-auto font-mono">
+            <div className="bg-glass border border-glass-border rounded-xl p-3">
+              <p className="text-xs text-muted-foreground mb-1">Extracted Text:</p>
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 max-h-20 overflow-y-auto font-mono">
                 {ocrText.slice(0, 300)}
                 {ocrText.length > 300 && "..."}
               </p>
@@ -289,17 +289,17 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
       <div className="space-y-4 mt-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-neutral-200 text-sm">Units Consumed</Label>
+            <Label className="text-foreground text-sm">Units Consumed</Label>
             <Input
               type="number"
               value={units}
               onChange={(e) => setUnits(e.target.value)}
               placeholder="e.g., 350"
-              className="h-10 bg-white/[0.06] border-white/[0.1] text-white placeholder:text-neutral-500 rounded-xl focus:border-white/25"
+              className="h-10 bg-glass border-glass-border text-foreground placeholder:text-muted-foreground rounded-xl focus:border-foreground/25"
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-neutral-200 text-sm">
+            <Label className="text-foreground text-sm">
               Tariff Rate (PKR/unit)
             </Label>
             <Input
@@ -307,13 +307,13 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
               value={tariff}
               onChange={(e) => setTariff(e.target.value)}
               placeholder="10"
-              className="h-10 bg-white/[0.06] border-white/[0.1] text-white placeholder:text-neutral-500 rounded-xl focus:border-white/25"
+              className="h-10 bg-glass border-glass-border text-foreground placeholder:text-muted-foreground rounded-xl focus:border-foreground/25"
             />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-neutral-200 text-sm">
+            <Label className="text-foreground text-sm">
               Extra Charges (PKR)
             </Label>
             <Input
@@ -321,26 +321,26 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
               value={extra}
               onChange={(e) => setExtra(e.target.value)}
               placeholder="0"
-              className="h-10 bg-white/[0.06] border-white/[0.1] text-white placeholder:text-neutral-500 rounded-xl focus:border-white/25"
+              className="h-10 bg-glass border-glass-border text-foreground placeholder:text-muted-foreground rounded-xl focus:border-foreground/25"
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-neutral-200 text-sm">Bill Date</Label>
+            <Label className="text-foreground text-sm">Bill Date</Label>
             <Input
               type="date"
               value={billDate}
               onChange={(e) => setBillDate(e.target.value)}
-              className="h-10 bg-white/[0.06] border-white/[0.1] text-white rounded-xl focus:border-white/25 [color-scheme:dark]"
+              className="h-10 bg-glass border-glass-border text-foreground rounded-xl focus:border-foreground/25 dark:[color-scheme:dark] [color-scheme:light]"
             />
           </div>
         </div>
 
         {/* Live preview */}
         {units && tariff && (
-          <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-4">
+          <div className="bg-glass-strong border border-glass-border rounded-xl p-4">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-neutral-300">Estimated Total</span>
-              <span className="text-xl font-bold text-white">
+              <span className="text-neutral-600 dark:text-neutral-300">Estimated Total</span>
+              <span className="text-xl font-bold text-foreground">
                 {calculateBill(
                   parseFloat(units) || 0,
                   parseFloat(tariff) || 0,
@@ -349,7 +349,7 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0,
                 })}{" "}
-                <span className="text-sm font-normal text-neutral-500">
+                <span className="text-sm font-normal text-muted-foreground">
                   PKR
                 </span>
               </span>

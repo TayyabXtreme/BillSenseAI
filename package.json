@@ -12,6 +12,7 @@
     "@aws-sdk/client-bedrock-runtime": "^3.988.0",
     "@base-ui/react": "^1.1.0",
     "@clerk/nextjs": "^6.37.3",
+    "@clerk/themes": "^2.4.51",
     "@google/genai": "^1.41.0",
     "@hookform/resolvers": "^5.2.2",
     "@langchain/aws": "^1.2.3",

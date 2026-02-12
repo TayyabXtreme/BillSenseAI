@@ -44,27 +44,27 @@ export function BillSummary({ bill }: BillSummaryProps) {
   }
 
   return (
-    <div className="rounded-2xl p-6 bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-lg shadow-black/20">
+    <div className="rounded-2xl p-6 bg-glass border border-border backdrop-blur-xl shadow-lg shadow-black/20">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2.5 rounded-xl bg-white/[0.08] border border-white/[0.06]">
-          <Zap className="h-5 w-5 text-white" />
+        <div className="p-2.5 rounded-xl bg-glass-strong border border-border">
+          <Zap className="h-5 w-5 text-foreground" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">Bill Summary</h2>
-          <p className="text-xs text-neutral-400">{bill.month}</p>
+          <h2 className="text-lg font-semibold text-foreground">Bill Summary</h2>
+          <p className="text-xs text-muted-foreground">{bill.month}</p>
         </div>
       </div>
 
       {/* Total Amount */}
-      <div className="text-center mb-6 p-6 bg-white/[0.06] border border-white/[0.1] rounded-xl">
-        <p className="text-sm text-neutral-300 mb-1">Total Amount</p>
-        <p className="text-4xl font-bold text-white glow-text">
+      <div className="text-center mb-6 p-6 bg-glass-strong border border-glass-border rounded-xl">
+        <p className="text-sm text-neutral-600 dark:text-neutral-300 mb-1">Total Amount</p>
+        <p className="text-4xl font-bold text-foreground glow-text">
           {bill.totalAmount.toLocaleString("en-PK", {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
           })}
         </p>
-        <p className="text-sm text-neutral-400 mt-1">PKR</p>
+        <p className="text-sm text-muted-foreground mt-1">PKR</p>
       </div>
 
       {/* Usage Alert */}
@@ -145,8 +145,8 @@ export function BillSummary({ bill }: BillSummaryProps) {
             <div key={item.label} className="flex items-center gap-2">
               <div className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
               <div className="flex-1">
-                <p className="text-xs text-neutral-400">{item.label}</p>
-                <p className="text-sm font-medium text-white">
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+                <p className="text-sm font-medium text-foreground">
                   {item.value.toLocaleString()} PKR
                 </p>
               </div>
@@ -156,7 +156,7 @@ export function BillSummary({ bill }: BillSummaryProps) {
       </div>
 
       {/* Details Table */}
-      <div className="mt-6 bg-white/[0.04] border border-white/[0.1] rounded-xl overflow-hidden">
+      <div className="mt-6 bg-glass border border-glass-border rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <tbody>
             {[
@@ -168,15 +168,15 @@ export function BillSummary({ bill }: BillSummaryProps) {
               { label: "Extra Charges", value: `${bill.extraCharges.toLocaleString()} PKR` },
             ].map((row, i) => (
               <tr key={row.label} className={i % 2 === 0 ? "bg-white/[0.02]" : ""}>
-                <td className="px-4 py-2.5 text-neutral-300">{row.label}</td>
-                <td className="px-4 py-2.5 text-white text-right font-medium">
+                <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-300">{row.label}</td>
+                <td className="px-4 py-2.5 text-foreground text-right font-medium">
                   {row.value}
                 </td>
               </tr>
             ))}
-            <tr className="border-t border-white/10 bg-white/[0.04]">
-              <td className="px-4 py-3 text-white font-semibold">Total</td>
-              <td className="px-4 py-3 text-white text-right font-bold text-lg">
+            <tr className="border-t border-glass-border bg-glass">
+              <td className="px-4 py-3 text-foreground font-semibold">Total</td>
+              <td className="px-4 py-3 text-foreground text-right font-bold text-lg">
                 {bill.totalAmount.toLocaleString()} PKR
               </td>
             </tr>

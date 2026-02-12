@@ -8,6 +8,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { toast } from "sonner";
 import { BillInput, type BillData } from "@/components/dashboard/bill-input";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Sidebar,
   SidebarContent,
@@ -94,7 +95,7 @@ export function AppSidebar() {
     <>
       <Sidebar
         collapsible="icon"
-        className="border-r border-white/[0.06] bg-neutral-950/80"
+        className="border-r border-border"
       >
         {/* Header with logo + toggle */}
         <SidebarHeader className="p-3">
@@ -103,29 +104,32 @@ export function AppSidebar() {
               href="/dashboard"
               className="flex items-center gap-2.5 group min-w-0"
             >
-              <div className="p-1.5 rounded-lg bg-white/[0.08] border border-white/[0.06] group-hover:bg-white/[0.12] transition-colors shrink-0">
-                <Zap className="h-4 w-4 text-white" />
+              <div className="p-1.5 rounded-lg bg-glass-strong border border-border group-hover:bg-glass-hover transition-colors shrink-0">
+                <Zap className="h-4 w-4 text-foreground" />
               </div>
-              <span className="text-base font-bold tracking-tight text-white truncate group-data-[collapsible=icon]:hidden">
+              <span className="text-base font-bold tracking-tight text-foreground truncate group-data-[collapsible=icon]:hidden">
                 BillSense
-                <span className="text-neutral-500 font-normal">.ai</span>
+                <span className="text-muted-foreground font-normal">.ai</span>
               </span>
             </Link>
-            <button
-              onClick={toggleSidebar}
-              className="p-1.5 rounded-lg text-neutral-500 hover:text-white hover:bg-white/[0.06] transition-colors shrink-0 group-data-[collapsible=icon]:hidden"
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-1 shrink-0 group-data-[collapsible=icon]:hidden">
+              <ThemeToggle />
+              <button
+                onClick={toggleSidebar}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-glass-hover transition-colors"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </SidebarHeader>
 
-        <SidebarSeparator className="bg-white/[0.06]" />
+        <SidebarSeparator className="bg-border" />
 
         <SidebarContent className="px-2 overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {/* Main Nav */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-neutral-500 text-[10px] uppercase tracking-wider px-2">
+            <SidebarGroupLabel className="text-muted-foreground text-[10px] uppercase tracking-wider px-2">
               Menu
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -134,7 +138,7 @@ export function AppSidebar() {
                 <SidebarMenuItem className="group-data-[state=expanded]:hidden">
                   <SidebarMenuButton
                     onClick={toggleSidebar}
-                    className="h-9 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+                    className="h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-glass-hover transition-colors cursor-pointer"
                   >
                     <ChevronsRight className="h-4 w-4" />
                     <span className="text-sm">Expand</span>
@@ -145,7 +149,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname === "/dashboard"}
-                    className="h-9 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.06] data-[active=true]:bg-white/[0.08] data-[active=true]:text-white transition-colors"
+                    className="h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-glass-hover data-[active=true]:bg-glass-strong data-[active=true]:text-foreground transition-colors"
                   >
                     <Link href="/dashboard">
                       <LayoutDashboard className="h-4 w-4" />
@@ -157,7 +161,7 @@ export function AppSidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={() => setShowNewAnalysis(true)}
-                    className="h-9 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+                    className="h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-glass-hover transition-colors cursor-pointer"
                   >
                     <PlusCircle className="h-4 w-4" />
                     <span className="text-sm">New Analysis</span>
@@ -167,11 +171,11 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          <SidebarSeparator className="bg-white/[0.06]" />
+          <SidebarSeparator className="bg-border" />
 
           {/* Bill History */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-neutral-500 text-[10px] uppercase tracking-wider px-2 flex items-center gap-2">
+            <SidebarGroupLabel className="text-muted-foreground text-[10px] uppercase tracking-wider px-2 flex items-center gap-2">
               <History className="h-3 w-3" />
               Recent Bills
             </SidebarGroupLabel>
@@ -183,13 +187,13 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         asChild
                         isActive={pathname === `/dashboard/${bill._id}`}
-                        className="h-9 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.06] data-[active=true]:bg-white/[0.08] data-[active=true]:text-white transition-colors"
+                        className="h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-glass-hover data-[active=true]:bg-glass-strong data-[active=true]:text-foreground transition-colors"
                       >
                         <Link href={`/dashboard/${bill._id}`}>
                           {bill.billType === "electricity" ? (
-                            <Zap className="h-3.5 w-3.5 text-yellow-400/70" />
+                            <Zap className="h-3.5 w-3.5 text-yellow-500 dark:text-yellow-400/70" />
                           ) : (
-                            <Flame className="h-3.5 w-3.5 text-orange-400/70" />
+                            <Flame className="h-3.5 w-3.5 text-orange-500 dark:text-orange-400/70" />
                           )}
                           <span className="text-sm truncate">{bill.month}</span>
                         </Link>
@@ -197,19 +201,19 @@ export function AppSidebar() {
                       <SidebarMenuBadge
                         className={`text-[9px] ${
                           bill.status === "analyzed"
-                            ? "text-green-400"
-                            : "text-neutral-500"
+                            ? "text-green-500 dark:text-green-400"
+                            : "text-muted-foreground"
                         }`}
                       >
-                        {bill.status === "analyzed" ? "✓" : "●"}
+                        {bill.status === "analyzed" ? "\u2713" : "\u25CF"}
                       </SidebarMenuBadge>
                     </SidebarMenuItem>
                   ))
                 ) : (
                   <SidebarMenuItem>
                     <div className="px-3 py-4 text-center group-data-[collapsible=icon]:hidden">
-                      <FileText className="h-5 w-5 mx-auto text-neutral-600 mb-1.5" />
-                      <p className="text-[11px] text-neutral-500">
+                      <FileText className="h-5 w-5 mx-auto text-muted-foreground mb-1.5" />
+                      <p className="text-[11px] text-muted-foreground">
                         No bills yet
                       </p>
                     </div>
@@ -219,62 +223,62 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          <SidebarSeparator className="bg-white/[0.06]" />
+          <SidebarSeparator className="bg-border" />
 
           {/* Stats */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-neutral-500 text-[10px] uppercase tracking-wider px-2 flex items-center gap-2">
+            <SidebarGroupLabel className="text-muted-foreground text-[10px] uppercase tracking-wider px-2 flex items-center gap-2">
               <BarChart3 className="h-3 w-3" />
               Stats
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <div className="px-3 py-2 space-y-2 group-data-[collapsible=icon]:hidden">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-neutral-500">
+                  <span className="text-[11px] text-muted-foreground">
                     Total Bills
                   </span>
-                  <span className="text-xs font-medium text-white">
+                  <span className="text-xs font-medium text-foreground">
                     {bills?.length || 0}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-neutral-500">Analyzed</span>
-                  <span className="text-xs font-medium text-green-400">
+                  <span className="text-[11px] text-muted-foreground">Analyzed</span>
+                  <span className="text-xs font-medium text-green-500 dark:text-green-400">
                     {analyzedCount}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-neutral-500">
+                  <span className="text-[11px] text-muted-foreground">
                     AI Powered
                   </span>
-                  <Sparkles className="h-3 w-3 text-neutral-400" />
+                  <Sparkles className="h-3 w-3 text-muted-foreground" />
                 </div>
               </div>
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="p-3 border-t border-white/[0.06]">
+        <SidebarFooter className="p-3 border-t border-border">
           <div className="flex items-center gap-3">
             <UserButton
               appearance={{
                 elements: {
-                  avatarBox: "h-8 w-8 ring-2 ring-white/[0.08]",
+                  avatarBox: "h-8 w-8 ring-2 ring-border",
                   userButtonPopoverCard:
-                    "bg-neutral-950/95 backdrop-blur-xl border border-white/10",
+                    "bg-neutral-950 backdrop-blur-xl border border-white/10 shadow-2xl",
                   userButtonPopoverActionButton:
-                    "text-neutral-300 hover:text-white hover:bg-white/5",
-                  userButtonPopoverActionButtonText: "text-neutral-300",
-                  userButtonPopoverActionButtonIcon: "text-neutral-400",
+                    "text-neutral-200 hover:text-white hover:bg-white/10",
+                  userButtonPopoverActionButtonText: "text-neutral-200",
+                  userButtonPopoverActionButtonIcon: "text-neutral-300",
                   userButtonPopoverFooter: "hidden",
                 },
               }}
             />
             <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-              <p className="text-sm text-white truncate font-medium">
+              <p className="text-sm text-foreground truncate font-medium">
                 {user?.firstName || "User"}
               </p>
-              <p className="text-[10px] text-neutral-500 truncate">
+              <p className="text-[10px] text-muted-foreground truncate">
                 {user?.emailAddresses?.[0]?.emailAddress}
               </p>
             </div>
@@ -286,10 +290,10 @@ export function AppSidebar() {
 
       {/* New Analysis Dialog */}
       <Dialog open={showNewAnalysis} onOpenChange={setShowNewAnalysis}>
-        <DialogContent className="sm:max-w-[550px] bg-neutral-950 border-white/[0.08] p-0 gap-0 max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <DialogContent className="sm:max-w-[550px] bg-background border-border p-0 gap-0 max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="text-white text-lg flex items-center gap-2">
-              <PlusCircle className="h-5 w-5 text-neutral-400" />
+            <DialogTitle className="text-foreground text-lg flex items-center gap-2">
+              <PlusCircle className="h-5 w-5 text-muted-foreground" />
               New Bill Analysis
             </DialogTitle>
           </DialogHeader>

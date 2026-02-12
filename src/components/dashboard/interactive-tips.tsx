@@ -59,14 +59,14 @@ export function InteractiveTips({ bill }: InteractiveTipsProps) {
   };
 
   return (
-    <div className="rounded-2xl p-6 bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-lg shadow-black/20">
+    <div className="rounded-2xl p-6 bg-glass border border-border backdrop-blur-xl shadow-lg shadow-black/20">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2.5 rounded-xl bg-white/[0.08] border border-white/[0.06]">
-          <SlidersHorizontal className="h-5 w-5 text-white" />
+        <div className="p-2.5 rounded-xl bg-glass-strong border border-border">
+          <SlidersHorizontal className="h-5 w-5 text-foreground" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">Usage Simulator</h2>
-          <p className="text-xs text-neutral-400">
+          <h2 className="text-lg font-semibold text-foreground">Usage Simulator</h2>
+          <p className="text-xs text-muted-foreground">
             See how reducing usage affects your bill
           </p>
         </div>
@@ -75,8 +75,8 @@ export function InteractiveTips({ bill }: InteractiveTipsProps) {
       {/* Main Slider */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
-          <Label className="text-sm text-neutral-200">Reduce Usage By</Label>
-          <span className="text-sm font-bold text-white">
+          <Label className="text-sm text-foreground">Reduce Usage By</Label>
+          <span className="text-sm font-bold text-foreground">
             {usageReduction[0]}%
           </span>
         </div>
@@ -89,14 +89,14 @@ export function InteractiveTips({ bill }: InteractiveTipsProps) {
           className="[&_[role=slider]]:bg-white [&_[role=slider]]:border-white/20 [&_[role=slider]]:shadow-lg [&_[role=slider]]:shadow-white/10"
         />
         <div className="flex justify-between mt-1">
-          <span className="text-xs text-neutral-500">0%</span>
-          <span className="text-xs text-neutral-500">50%</span>
+          <span className="text-xs text-muted-foreground">0%</span>
+          <span className="text-xs text-muted-foreground">50%</span>
         </div>
       </div>
 
       {/* Appliance Toggles */}
       <div className="mb-6">
-        <p className="text-sm text-neutral-300 mb-3 flex items-center gap-2">
+        <p className="text-sm text-neutral-600 dark:text-neutral-300 mb-3 flex items-center gap-2">
           <Lightbulb className="h-4 w-4" />
           Turn off appliances to save more
         </p>
@@ -108,15 +108,15 @@ export function InteractiveTips({ bill }: InteractiveTipsProps) {
               className={`flex items-center gap-3 p-3 rounded-xl transition-all text-left cursor-pointer ${
                 disabledAppliances.includes(appliance.name)
                   ? "usage-low border border-green-500/20"
-                  : "bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08]"
+                  : "bg-glass border border-border hover:bg-glass-strong"
               }`}
             >
               <span className="text-lg">{appliance.icon}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-white truncate">
+                <p className="text-xs font-medium text-foreground truncate">
                   {appliance.name}
                 </p>
-                <p className="text-[10px] text-neutral-400">
+                <p className="text-[10px] text-muted-foreground">
                   -{appliance.reduction}% usage
                 </p>
               </div>
@@ -132,29 +132,29 @@ export function InteractiveTips({ bill }: InteractiveTipsProps) {
 
       {/* Results */}
       <div className="space-y-3">
-        <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-4">
+        <div className="bg-glass-strong border border-glass-border rounded-xl p-4">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-xs text-neutral-400 mb-1">New Units</p>
-              <p className="text-lg font-bold text-white">
+              <p className="text-xs text-muted-foreground mb-1">New Units</p>
+              <p className="text-lg font-bold text-foreground">
                 {calculations.newUnits}
               </p>
             </div>
             <div>
-              <p className="text-xs text-neutral-400 mb-1">New Bill</p>
-              <p className="text-lg font-bold text-white">
+              <p className="text-xs text-muted-foreground mb-1">New Bill</p>
+              <p className="text-lg font-bold text-foreground">
                 {calculations.newTotal.toLocaleString()}
               </p>
-              <p className="text-[10px] text-neutral-400">PKR</p>
+              <p className="text-[10px] text-muted-foreground">PKR</p>
             </div>
             <div>
-              <p className="text-xs text-neutral-400 mb-1">You Save</p>
+              <p className="text-xs text-muted-foreground mb-1">You Save</p>
               <p className="text-lg font-bold text-green-400">
                 {calculations.savings > 0
                   ? calculations.savings.toLocaleString()
                   : "0"}
               </p>
-              <p className="text-[10px] text-neutral-500">PKR</p>
+              <p className="text-[10px] text-muted-foreground">PKR</p>
             </div>
           </div>
         </div>

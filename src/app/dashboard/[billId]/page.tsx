@@ -86,10 +86,10 @@ export default function BillDetailPage({
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-16 w-16 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center">
-            <Loader2 className="h-7 w-7 animate-spin text-neutral-400" />
+          <div className="h-16 w-16 rounded-2xl bg-glass border border-border flex items-center justify-center">
+            <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
           </div>
-          <p className="text-sm text-neutral-500">Loading bill details...</p>
+          <p className="text-sm text-muted-foreground">Loading bill details...</p>
         </div>
       </div>
     );
@@ -98,15 +98,15 @@ export default function BillDetailPage({
   if (bill === null) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-5">
-        <div className="h-20 w-20 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
+        <div className="h-20 w-20 rounded-2xl bg-glass border border-border flex items-center justify-center">
           <FileText className="h-9 w-9 text-neutral-600" />
         </div>
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-white mb-1">Bill not found</h2>
-          <p className="text-sm text-neutral-500">This bill may have been deleted.</p>
+          <h2 className="text-xl font-semibold text-foreground mb-1">Bill not found</h2>
+          <p className="text-sm text-muted-foreground">This bill may have been deleted.</p>
         </div>
         <Link href="/dashboard">
-          <Button variant="outline" className="bg-white/[0.06] text-white border-white/10 hover:bg-white/[0.1]">
+          <Button variant="outline" className="bg-glass text-foreground border-glass-border hover:bg-glass-strong">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
@@ -261,13 +261,13 @@ export default function BillDetailPage({
       {/* Back + Bill Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <Link href="/dashboard">
-          <Button variant="ghost" size="sm" className="text-neutral-400 hover:text-white hover:bg-white/[0.06] gap-1.5">
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-glass-hover gap-1.5">
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
         </Link>
         <div className="flex-1 flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-white/[0.08] border border-white/[0.06]">
+          <div className="p-3 rounded-xl bg-glass-strong border border-border">
             {bill.billType === "electricity" ? (
               <Zap className="h-6 w-6 text-yellow-400" />
             ) : (
@@ -275,10 +275,10 @@ export default function BillDetailPage({
             )}
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
               {bill.billType.charAt(0).toUpperCase() + bill.billType.slice(1)} Bill
             </h1>
-            <div className="flex items-center gap-3 text-sm text-neutral-400">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" />
                 {bill.month}
@@ -286,7 +286,7 @@ export default function BillDetailPage({
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                 bill.status === "analyzed"
                   ? "bg-green-500/10 text-green-400 border border-green-500/20"
-                  : "bg-white/[0.06] text-neutral-400 border border-white/[0.08]"
+                  : "bg-glass text-muted-foreground border border-border"
               }`}>
                 {bill.status === "analyzed" ? "\u2713 Analyzed" : "\u25CF Draft"}
               </span>
@@ -298,14 +298,14 @@ export default function BillDetailPage({
       {/* Key Metrics Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Total Amount", value: `${bill.totalAmount.toLocaleString()}`, unit: "PKR", icon: BadgeDollarSign, accent: "text-white", bg: "bg-white/[0.08]" },
-          { label: "Units Used", value: `${bill.unitsConsumed}`, unit: "units", icon: Activity, accent: "text-neutral-200", bg: "bg-white/[0.04]" },
-          { label: "Tariff Rate", value: `${bill.tariffRate}`, unit: "PKR/unit", icon: Gauge, accent: "text-neutral-200", bg: "bg-white/[0.04]" },
-          { label: "Daily Average", value: `~${dailyUsage.toFixed(1)}`, unit: "units/day", icon: BarChart3, accent: "text-neutral-200", bg: "bg-white/[0.04]" },
+          { label: "Total Amount", value: `${bill.totalAmount.toLocaleString()}`, unit: "PKR", icon: BadgeDollarSign, accent: "text-foreground", bg: "bg-glass-strong" },
+          { label: "Units Used", value: `${bill.unitsConsumed}`, unit: "units", icon: Activity, accent: "text-foreground", bg: "bg-glass" },
+          { label: "Tariff Rate", value: `${bill.tariffRate}`, unit: "PKR/unit", icon: Gauge, accent: "text-foreground", bg: "bg-glass" },
+          { label: "Daily Average", value: `~${dailyUsage.toFixed(1)}`, unit: "units/day", icon: BarChart3, accent: "text-foreground", bg: "bg-glass" },
         ].map((metric) => (
-          <div key={metric.label} className={`rounded-xl p-4 ${metric.bg} border border-white/[0.08] backdrop-blur-xl group hover:bg-white/[0.08] transition-colors`}>
+          <div key={metric.label} className={`rounded-xl p-4 ${metric.bg} border border-border backdrop-blur-xl group hover:bg-glass-strong transition-colors`}>
             <div className="flex items-center justify-between mb-3">
-              <metric.icon className="h-4 w-4 text-neutral-500 group-hover:text-neutral-400 transition-colors" />
+              <metric.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground/60 transition-colors" />
               {metric.label === "Total Amount" && diffFromAvg !== 0 && (
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                   diffFromAvg > 0 ? "text-red-400 bg-red-500/10" : "text-green-400 bg-green-500/10"
@@ -315,7 +315,7 @@ export default function BillDetailPage({
               )}
             </div>
             <p className={`text-xl font-bold ${metric.accent} truncate`}>{metric.value}</p>
-            <p className="text-[11px] text-neutral-500 mt-1">{metric.unit}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{metric.unit}</p>
           </div>
         ))}
       </div>
@@ -344,9 +344,9 @@ export default function BillDetailPage({
         {/* Left Column */}
         <div className="space-y-6">
           {/* Pie Chart + Breakdown */}
-          <div className="rounded-2xl p-6 bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-lg shadow-black/20">
-            <h2 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
-              <FileText className="h-5 w-5 text-neutral-400" />
+          <div className="rounded-2xl p-6 bg-glass border border-border backdrop-blur-xl shadow-lg shadow-black/20">
+            <h2 className="text-lg font-semibold text-foreground mb-5 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-muted-foreground" />
               Bill Breakdown
             </h2>
 
@@ -384,17 +384,17 @@ export default function BillDetailPage({
                   <div key={item.label}>
                     <div className="flex items-center gap-2 mb-1">
                       <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                      <p className="text-xs text-neutral-400 flex-1">{item.label}</p>
-                      <p className="text-[10px] text-neutral-500">{item.pct}%</p>
+                      <p className="text-xs text-muted-foreground flex-1">{item.label}</p>
+                      <p className="text-[10px] text-muted-foreground">{item.pct}%</p>
                     </div>
-                    <p className="text-sm font-semibold text-white pl-4">{item.value.toLocaleString()} PKR</p>
+                    <p className="text-sm font-semibold text-foreground pl-4">{item.value.toLocaleString()} PKR</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Details Table */}
-            <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
+            <div className="bg-glass border border-border rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <tbody>
                   {[
@@ -406,13 +406,13 @@ export default function BillDetailPage({
                     { label: "Extra Charges", value: `${bill.extraCharges.toLocaleString()} PKR` },
                   ].map((row, i) => (
                     <tr key={row.label} className={i % 2 === 0 ? "bg-white/[0.015]" : "bg-transparent"}>
-                      <td className="px-4 py-2.5 text-neutral-400">{row.label}</td>
-                      <td className="px-4 py-2.5 text-white text-right font-medium">{row.value}</td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{row.label}</td>
+                      <td className="px-4 py-2.5 text-foreground text-right font-medium">{row.value}</td>
                     </tr>
                   ))}
-                  <tr className="border-t border-white/[0.08] bg-white/[0.04]">
-                    <td className="px-4 py-3 text-white font-semibold">Total</td>
-                    <td className="px-4 py-3 text-white text-right font-bold text-lg">{bill.totalAmount.toLocaleString()} PKR</td>
+                  <tr className="border-t border-border bg-glass">
+                    <td className="px-4 py-3 text-foreground font-semibold">Total</td>
+                    <td className="px-4 py-3 text-foreground text-right font-bold text-lg">{bill.totalAmount.toLocaleString()} PKR</td>
                   </tr>
                 </tbody>
               </table>
@@ -421,18 +421,18 @@ export default function BillDetailPage({
 
           {/* Bill Comparison Chart */}
           {comparisonData.length > 1 && (
-            <div className="rounded-2xl p-6 bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-lg shadow-black/20">
+            <div className="rounded-2xl p-6 bg-glass border border-border backdrop-blur-xl shadow-lg shadow-black/20">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-neutral-400" />
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-muted-foreground" />
                   Bill History
                 </h2>
                 <div className="flex items-center gap-3 text-[10px]">
-                  <span className="flex items-center gap-1.5 text-neutral-400">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
                     <span className="w-2 h-2 rounded-full bg-white" />
                     Current
                   </span>
-                  <span className="flex items-center gap-1.5 text-neutral-500">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
                     <span className="w-2 h-2 rounded-full bg-neutral-600" />
                     Other
                   </span>
@@ -461,17 +461,17 @@ export default function BillDetailPage({
                 </RechartsBarChart>
               </ResponsiveContainer>
 
-              <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-white/[0.06]">
+              <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-border">
                 <div className="text-center">
-                  <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Average</p>
-                  <p className="text-sm font-bold text-white">{Math.round(avgAmount).toLocaleString()}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Average</p>
+                  <p className="text-sm font-bold text-foreground">{Math.round(avgAmount).toLocaleString()}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-[10px] text-neutral-500 uppercase tracking-wider">This Bill</p>
-                  <p className="text-sm font-bold text-white">{bill.totalAmount.toLocaleString()}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">This Bill</p>
+                  <p className="text-sm font-bold text-foreground">{bill.totalAmount.toLocaleString()}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Difference</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Difference</p>
                   <p className={`text-sm font-bold ${diffFromAvg > 0 ? "text-red-400" : "text-green-400"}`}>
                     {diffFromAvg > 0 ? "+" : ""}{Math.round(diffFromAvg).toLocaleString()}
                   </p>
@@ -481,16 +481,16 @@ export default function BillDetailPage({
           )}
 
           {/* Savings Simulator */}
-          <div className="rounded-2xl p-6 bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-lg shadow-black/20">
-            <h2 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
-              <SlidersHorizontal className="h-5 w-5 text-neutral-400" />
+          <div className="rounded-2xl p-6 bg-glass border border-border backdrop-blur-xl shadow-lg shadow-black/20">
+            <h2 className="text-lg font-semibold text-foreground mb-5 flex items-center gap-2">
+              <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
               Savings Simulator
             </h2>
 
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <Label className="text-sm text-neutral-200">Reduce Usage By</Label>
-                <span className="text-sm font-bold text-white bg-white/[0.08] px-2.5 py-1 rounded-lg">{usageReduction[0]}%</span>
+                <Label className="text-sm text-foreground">Reduce Usage By</Label>
+                <span className="text-sm font-bold text-foreground bg-glass-strong px-2.5 py-1 rounded-lg">{usageReduction[0]}%</span>
               </div>
               <Slider
                 value={usageReduction}
@@ -503,7 +503,7 @@ export default function BillDetailPage({
             </div>
 
             <div className="mb-6">
-              <p className="text-sm text-neutral-300 mb-3 flex items-center gap-2">
+              <p className="text-sm text-neutral-600 dark:text-neutral-300 mb-3 flex items-center gap-2">
                 <Lightbulb className="h-4 w-4" />
                 Turn off appliances to save more
               </p>
@@ -515,13 +515,13 @@ export default function BillDetailPage({
                     className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer ${
                       disabledAppliances.includes(appliance.name)
                         ? "usage-low border border-green-500/20"
-                        : "bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08]"
+                        : "bg-glass border border-border hover:bg-glass-strong"
                     }`}
                   >
                     <span className="text-lg">{appliance.icon}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-white truncate">{appliance.name}</p>
-                      <p className="text-[10px] text-neutral-400">save {appliance.reduction}%</p>
+                      <p className="text-xs font-medium text-foreground truncate">{appliance.name}</p>
+                      <p className="text-[10px] text-muted-foreground">save {appliance.reduction}%</p>
                     </div>
                     <Switch
                       checked={disabledAppliances.includes(appliance.name)}
@@ -533,21 +533,21 @@ export default function BillDetailPage({
               </div>
             </div>
 
-            <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-5">
+            <div className="bg-glass-strong border border-glass-border rounded-xl p-5">
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">New Units</p>
-                  <p className="text-xl font-bold text-white">{Math.round(newUnits)}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">New Units</p>
+                  <p className="text-xl font-bold text-foreground">{Math.round(newUnits)}</p>
                 </div>
-                <div className="border-x border-white/[0.06]">
-                  <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">New Bill</p>
-                  <p className="text-xl font-bold text-white">{Math.round(newTotal).toLocaleString()}</p>
-                  <p className="text-[10px] text-neutral-500">PKR</p>
+                <div className="border-x border-border">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">New Bill</p>
+                  <p className="text-xl font-bold text-foreground">{Math.round(newTotal).toLocaleString()}</p>
+                  <p className="text-[10px] text-muted-foreground">PKR</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">You Save</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">You Save</p>
                   <p className="text-xl font-bold text-green-400">{savings > 0 ? Math.round(savings).toLocaleString() : "0"}</p>
-                  <p className="text-[10px] text-neutral-500">PKR</p>
+                  <p className="text-[10px] text-muted-foreground">PKR</p>
                 </div>
               </div>
             </div>
@@ -567,23 +567,23 @@ export default function BillDetailPage({
 
         {/* Right Column: AI Analysis */}
         <div className="space-y-6">
-          <div className="rounded-2xl p-6 bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-lg shadow-black/20">
-            <h2 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
-              <Brain className="h-5 w-5 text-neutral-400" />
+          <div className="rounded-2xl p-6 bg-glass border border-border backdrop-blur-xl shadow-lg shadow-black/20">
+            <h2 className="text-lg font-semibold text-foreground mb-5 flex items-center gap-2">
+              <Brain className="h-5 w-5 text-muted-foreground" />
               AI Analysis
-              <span className="ml-auto text-[10px] text-neutral-600 font-normal">Powered by Gemini AI</span>
+              <span className="ml-auto text-[10px] text-muted-foreground font-normal">Powered by Gemini AI</span>
             </h2>
 
-            <div className="flex items-center gap-3 p-4 mb-5 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+            <div className="flex items-center gap-3 p-4 mb-5 rounded-xl bg-glass border border-border">
               <div className="relative">
-                <div className={`h-3 w-3 rounded-full ${displayExplanation ? "bg-green-400" : "bg-neutral-600"}`} />
+                <div className={`h-3 w-3 rounded-full ${displayExplanation ? "bg-green-400" : "bg-muted-foreground"}`} />
                 {displayExplanation && <div className="absolute inset-0 h-3 w-3 rounded-full bg-green-400 animate-ping opacity-30" />}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-white">{displayExplanation ? "Analysis Complete" : "Not Analyzed Yet"}</p>
-                <p className="text-[10px] text-neutral-500">{displayExplanation ? "AI has analyzed this bill" : "Click below to analyze with Gemini AI"}</p>
+                <p className="text-sm font-medium text-foreground">{displayExplanation ? "Analysis Complete" : "Not Analyzed Yet"}</p>
+                <p className="text-[10px] text-muted-foreground">{displayExplanation ? "AI has analyzed this bill" : "Click below to analyze with Gemini AI"}</p>
               </div>
-              <Sparkles className={`h-5 w-5 ${displayExplanation ? "text-green-400" : "text-neutral-600"}`} />
+              <Sparkles className={`h-5 w-5 ${displayExplanation ? "text-green-400" : "text-muted-foreground"}`} />
             </div>
 
             {!displayExplanation && (
@@ -598,24 +598,24 @@ export default function BillDetailPage({
 
             {displayExplanation && (
               <div className="space-y-4">
-                <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-5">
+                <div className="bg-glass-strong border border-glass-border rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-white/[0.1] mt-0.5 shrink-0">
-                      <MessageCircle className="h-4 w-4 text-white" />
+                    <div className="p-2 rounded-lg bg-glass-strong mt-0.5 shrink-0">
+                      <MessageCircle className="h-4 w-4 text-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] uppercase tracking-wider text-neutral-500 mb-2">AI Explanation</p>
-                      <div className="text-sm text-neutral-200 leading-relaxed whitespace-pre-line">{displayExplanation}</div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">AI Explanation</p>
+                      <div className="text-sm text-neutral-600 dark:text-neutral-200 leading-relaxed whitespace-pre-line">{displayExplanation}</div>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex gap-2">
-                  <Button onClick={handleExplain} variant="outline" size="sm" disabled={loading} className="bg-white/[0.06] text-neutral-300 border-white/10 gap-1 hover:bg-white/[0.1]">
+                  <Button onClick={handleExplain} variant="outline" size="sm" disabled={loading} className="bg-glass text-muted-foreground border-glass-border gap-1 hover:bg-glass-strong">
                     <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />Regenerate
                   </Button>
                   {displayTips.length === 0 && (
-                    <Button onClick={handleGetTips} disabled={tipsLoading} size="sm" className="bg-white/10 text-white hover:bg-white/15 border border-white/10 gap-1">
+                    <Button onClick={handleGetTips} disabled={tipsLoading} size="sm" className="bg-glass-strong text-foreground hover:bg-glass-hover border border-glass-border gap-1">
                       {tipsLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3" />}
                       Get Savings Tips
                     </Button>
@@ -626,21 +626,21 @@ export default function BillDetailPage({
           </div>
 
           {displayTips.length > 0 && (
-            <div className="rounded-2xl p-6 bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-lg shadow-black/20">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Lightbulb className="h-5 w-5 text-neutral-400" />
+            <div className="rounded-2xl p-6 bg-glass border border-border backdrop-blur-xl shadow-lg shadow-black/20">
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Lightbulb className="h-5 w-5 text-muted-foreground" />
                 AI Savings Tips
-                <span className="ml-auto text-xs text-neutral-600 bg-white/[0.06] px-2 py-0.5 rounded-full">{displayTips.length} tips</span>
+                <span className="ml-auto text-xs text-muted-foreground bg-glass px-2 py-0.5 rounded-full">{displayTips.length} tips</span>
               </h2>
               <div className="space-y-3">
                 {displayTips.map((tip, i) => (
-                  <div key={i} className="rounded-xl p-4 flex items-start gap-3 bg-white/[0.03] hover:bg-white/[0.06] transition-colors border border-white/[0.06] group">
-                    <span className="shrink-0 w-7 h-7 rounded-lg bg-white/[0.08] group-hover:bg-white/[0.12] flex items-center justify-center text-xs font-bold text-white transition-colors">{i + 1}</span>
-                    <p className="text-sm text-neutral-300 leading-relaxed">{tip}</p>
+                  <div key={i} className="rounded-xl p-4 flex items-start gap-3 bg-glass hover:bg-glass-strong transition-colors border border-border group">
+                    <span className="shrink-0 w-7 h-7 rounded-lg bg-glass-strong group-hover:bg-glass-hover flex items-center justify-center text-xs font-bold text-foreground transition-colors">{i + 1}</span>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">{tip}</p>
                   </div>
                 ))}
               </div>
-              <Button onClick={handleGetTips} disabled={tipsLoading} variant="outline" size="sm" className="mt-4 bg-white/[0.06] text-neutral-300 border-white/10 gap-1 hover:bg-white/[0.1]">
+              <Button onClick={handleGetTips} disabled={tipsLoading} variant="outline" size="sm" className="mt-4 bg-glass text-muted-foreground border-glass-border gap-1 hover:bg-glass-strong">
                 {tipsLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
                 Regenerate Tips
               </Button>
@@ -648,13 +648,13 @@ export default function BillDetailPage({
           )}
 
           {bill.ocrRawText && (
-            <div className="rounded-2xl p-6 bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-lg shadow-black/20">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-neutral-400" />
+            <div className="rounded-2xl p-6 bg-glass border border-border backdrop-blur-xl shadow-lg shadow-black/20">
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-muted-foreground" />
                 OCR Extracted Text
               </h2>
-              <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 max-h-48 overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full">
-                <pre className="text-xs text-neutral-400 whitespace-pre-wrap font-mono leading-relaxed">{bill.ocrRawText}</pre>
+              <div className="bg-glass border border-border rounded-xl p-4 max-h-48 overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full">
+                <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed">{bill.ocrRawText}</pre>
               </div>
             </div>
           )}

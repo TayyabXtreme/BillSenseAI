@@ -24,8 +24,8 @@ function DashboardBreadcrumb() {
         href="/dashboard"
         className={`flex items-center gap-1.5 transition-colors ${
           isDetail
-            ? "text-neutral-500 hover:text-neutral-300"
-            : "text-white font-medium"
+            ? "text-muted-foreground hover:text-foreground"
+            : "text-foreground font-medium"
         }`}
       >
         <LayoutDashboard className="h-3.5 w-3.5" />
@@ -33,8 +33,8 @@ function DashboardBreadcrumb() {
       </Link>
       {isDetail && (
         <>
-          <ChevronRight className="h-3 w-3 text-neutral-600" />
-          <span className="text-white font-medium flex items-center gap-1.5">
+          <ChevronRight className="h-3 w-3 text-muted-foreground" />
+          <span className="text-foreground font-medium flex items-center gap-1.5">
             <FileText className="h-3.5 w-3.5" />
             Bill Analysis
           </span>
@@ -71,7 +71,7 @@ export default function DashboardLayout({
           <AppSidebar />
           <SidebarInset className="bg-transparent min-h-screen">
             {/* Top bar - breadcrumb only */}
-            <header className="sticky top-0 z-40 flex items-center h-12 px-5 border-b border-white/[0.06] bg-neutral-950/85 backdrop-blur-2xl">
+            <header className="sticky top-0 z-40 flex items-center h-12 px-5 border-b border-border bg-header backdrop-blur-2xl">
               <DashboardBreadcrumb />
             </header>
 

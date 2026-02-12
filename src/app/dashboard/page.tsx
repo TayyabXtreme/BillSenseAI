@@ -106,7 +106,7 @@ export default function DashboardPage() {
       {!currentBill && (
         <div className="space-y-5">
           {/* Welcome Hero */}
-          <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.06] via-white/[0.03] to-transparent p-7 sm:p-10">
+          <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-glass-strong via-glass to-transparent p-7 sm:p-10">
             <div
               className="absolute inset-0 opacity-[0.03]"
               style={{
@@ -116,14 +116,14 @@ export default function DashboardPage() {
               }}
             />
             <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <div className="p-4 rounded-2xl bg-white/[0.08] border border-white/[0.06] animate-float shrink-0">
-                <Sparkles className="h-8 w-8 text-white" />
+              <div className="p-4 rounded-2xl bg-glass-strong border border-border animate-float shrink-0">
+                <Sparkles className="h-8 w-8 text-foreground" />
               </div>
               <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1.5 tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1.5 tracking-tight">
                   Welcome back, {user?.firstName || "there"}
                 </h1>
-                <p className="text-neutral-400 text-sm sm:text-base leading-relaxed max-w-xl">
+                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-xl">
                   Upload a bill or enter details manually. AI will explain every
                   charge and help you save.
                 </p>
@@ -132,7 +132,7 @@ export default function DashboardPage() {
 
             {/* Quick Stats */}
             {totalBills > 0 && (
-              <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6 pt-6 border-t border-white/[0.06]">
+              <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6 pt-6 border-t border-border">
                 {[
                   {
                     icon: BarChart3,
@@ -158,15 +158,15 @@ export default function DashboardPage() {
                 ].map((stat) => (
                   <div
                     key={stat.label}
-                    className="rounded-xl bg-white/[0.04] border border-white/[0.06] p-3 sm:p-4"
+                    className="rounded-xl bg-glass border border-border p-3 sm:p-4"
                   >
-                    <stat.icon className="h-4 w-4 text-neutral-500 mb-2 hidden sm:block" />
+                    <stat.icon className="h-4 w-4 text-muted-foreground mb-2 hidden sm:block" />
                     <p
-                      className={`text-lg sm:text-xl font-bold truncate ${stat.accent || "text-white"}`}
+                      className={`text-lg sm:text-xl font-bold truncate ${stat.accent || "text-foreground"}`}
                     >
                       {stat.value}
                     </p>
-                    <p className="text-[11px] sm:text-xs text-neutral-500 mt-0.5">
+                    <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
                       {stat.label}
                     </p>
                   </div>
@@ -200,16 +200,16 @@ export default function DashboardPage() {
               ].map((item) => (
                 <div
                   key={item.step}
-                  className="flex items-start gap-3 rounded-xl p-4 bg-white/[0.03] border border-white/[0.06]"
+                  className="flex items-start gap-3 rounded-xl p-4 bg-glass border border-border"
                 >
-                  <div className="p-2 rounded-lg bg-white/[0.06] shrink-0">
-                    <item.icon className="h-4 w-4 text-neutral-300" />
+                  <div className="p-2 rounded-lg bg-glass-strong shrink-0">
+                    <item.icon className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white mb-0.5">
+                    <p className="text-sm font-medium text-foreground mb-0.5">
                       {item.title}
                     </p>
-                    <p className="text-xs text-neutral-500 leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       {item.desc}
                     </p>
                   </div>
@@ -222,22 +222,22 @@ export default function DashboardPage() {
 
       {/* Active Analysis Banner */}
       {currentBill && (
-        <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08]">
+        <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-glass border border-border">
           <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-          <p className="text-sm text-neutral-300 flex-1">
+          <p className="text-sm text-neutral-600 dark:text-neutral-300 flex-1">
             Analyzing{" "}
-            <span className="text-white font-medium">
+            <span className="text-foreground font-medium">
               {currentBill.billType}
             </span>{" "}
             bill for{" "}
-            <span className="text-white font-medium">{currentBill.month}</span>
+            <span className="text-foreground font-medium">{currentBill.month}</span>
           </p>
           <div className="flex gap-2">
             {currentBillId && (
               <Button
                 onClick={() => router.push(`/dashboard/${currentBillId}`)}
                 size="sm"
-                className="bg-white/10 text-white hover:bg-white/15 border border-white/10 gap-1 text-xs h-8"
+                className="bg-glass-strong text-foreground hover:bg-glass-hover border border-glass-border gap-1 text-xs h-8"
               >
                 <ArrowRight className="h-3 w-3" />
                 Full View
@@ -248,7 +248,7 @@ export default function DashboardPage() {
                 setCurrentBill(null);
                 setCurrentBillId(null);
               }}
-              className="text-xs text-neutral-500 hover:text-white transition-colors px-3 py-1 rounded-lg hover:bg-white/[0.06]"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1 rounded-lg hover:bg-glass-hover"
             >
               New Bill
             </button>
@@ -275,14 +275,14 @@ export default function DashboardPage() {
           {currentBill && <InteractiveTips bill={currentBill} />}
 
           {/* Recent Bills - always visible */}
-          <div className="rounded-2xl p-6 bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-lg shadow-black/20">
+          <div className="rounded-2xl p-6 bg-glass border border-border backdrop-blur-xl shadow-lg shadow-black/20">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <Activity className="h-5 w-5 text-neutral-400" />
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <Activity className="h-5 w-5 text-muted-foreground" />
                 Recent Bills
               </h2>
               {totalBills > 0 && (
-                <span className="text-xs text-neutral-500 px-2 py-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
+                <span className="text-xs text-muted-foreground px-2 py-1 rounded-full bg-glass border border-border">
                   {totalBills} total
                 </span>
               )}
@@ -294,10 +294,10 @@ export default function DashboardPage() {
                   <Link
                     key={bill._id}
                     href={`/dashboard/${bill._id}`}
-                    className="flex items-center justify-between p-3 bg-white/[0.04] border border-white/[0.08] rounded-xl hover:bg-white/[0.08] hover:border-white/[0.12] transition-all group cursor-pointer"
+                    className="flex items-center justify-between p-3 bg-glass border border-border rounded-xl hover:bg-glass-strong hover:border-glass-border transition-all group cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-white/[0.06]">
+                      <div className="p-2 rounded-lg bg-glass-strong">
                         {bill.billType === "electricity" ? (
                           <Zap className="h-4 w-4 text-yellow-400/70" />
                         ) : (
@@ -305,10 +305,10 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-white group-hover:text-white">
+                        <p className="text-sm font-medium text-foreground group-hover:text-foreground">
                           {bill.month}
                         </p>
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-muted-foreground">
                           {bill.unitsConsumed} units ·{" "}
                           {bill.billType.charAt(0).toUpperCase() +
                             bill.billType.slice(1)}
@@ -317,14 +317,14 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <p className="text-sm font-semibold text-white">
+                        <p className="text-sm font-semibold text-foreground">
                           {bill.totalAmount.toLocaleString()} PKR
                         </p>
                         <p
                           className={`text-[10px] ${
                             bill.status === "analyzed"
                               ? "text-green-400"
-                              : "text-neutral-500"
+                              : "text-muted-foreground"
                           }`}
                         >
                           {bill.status === "analyzed"
@@ -332,16 +332,16 @@ export default function DashboardPage() {
                             : "● Draft"}
                         </p>
                       </div>
-                      <ArrowRight className="h-4 w-4 text-neutral-600 group-hover:text-neutral-300 transition-colors" />
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 text-neutral-400">
+              <div className="text-center py-12 text-muted-foreground">
                 <FileText className="h-10 w-10 mx-auto mb-3 opacity-40" />
                 <p className="text-sm">No bills analyzed yet</p>
-                <p className="text-xs mt-1 text-neutral-500">
+                <p className="text-xs mt-1 text-muted-foreground">
                   Upload or enter a bill to get started
                 </p>
               </div>
