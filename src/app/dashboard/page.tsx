@@ -41,6 +41,7 @@ import {
   Clock,
   ArrowUpDown,
   Plus,
+  PlusCircle,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -406,6 +407,21 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* New Analysis CTA */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-foreground">Your Bills</h2>
+        <Button
+          onClick={() => {
+            const btn = document.querySelector('[data-new-analysis]') as HTMLButtonElement;
+            if (btn) btn.click();
+          }}
+          className="bg-foreground text-background hover:bg-foreground/90 font-semibold text-sm h-9 px-4 rounded-xl gap-2"
+        >
+          <PlusCircle className="h-4 w-4" />
+          New Analysis
+        </Button>
+      </div>
 
       {/* Empty State */}
       {totalBills === 0 && (

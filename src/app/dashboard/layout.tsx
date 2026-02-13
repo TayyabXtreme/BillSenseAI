@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
+import { ChatPanel } from "@/components/dashboard/chat-panel";
 import {
   SidebarProvider,
   SidebarInset,
@@ -111,6 +112,8 @@ export default function DashboardLayout({
           </SidebarInset>
         </SidebarProvider>
       </div>
+      {/* Chat Panel - Outside SidebarProvider to ensure proper positioning */}
+      <ChatPanel />
     </div>
   );
 }

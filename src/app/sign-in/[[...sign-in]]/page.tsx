@@ -207,6 +207,9 @@ export default function SignInPage() {
               )}
             </div>
 
+            {/* Clerk CAPTCHA */}
+            <div id="clerk-captcha" className="py-2" />
+
             <Button
               type="submit"
               disabled={loading}

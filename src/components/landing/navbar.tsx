@@ -94,6 +94,10 @@ export function Navbar() {
             </a>
           ))}
           <div className="pt-3 border-t border-border space-y-2">
+            <div className="flex items-center justify-between px-4 py-2">
+              <span className="text-sm text-muted-foreground">Theme</span>
+              <ThemeToggle />
+            </div>
             <SignedOut>
               <Link href="/sign-in" className="block">
                 <Button variant="ghost" className="w-full text-muted-foreground hover:text-foreground hover:bg-glass-hover justify-center h-11">

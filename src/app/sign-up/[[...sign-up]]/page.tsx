@@ -257,7 +257,7 @@ export default function SignUpPage() {
         </div>
 
         {/* Sign Up Card */}
-        <div className="w-full rounded-2xl p-8 bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] shadow-2xl shadow-black/40">
+        <div className="w-full rounded-2xl p-6 sm:p-8 bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] shadow-2xl shadow-black/40">
           {/* Google Button */}
           <button
             onClick={handleGoogleSignUp}
@@ -286,7 +286,7 @@ export default function SignUpPage() {
 
           {/* Form */}
           <form onSubmit={handleEmailSignUp} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-neutral-200">First Name</Label>
                 <div className="relative">
@@ -296,7 +296,7 @@ export default function SignUpPage() {
                     value={firstName}
                     onChange={(e) => { setFirstName(e.target.value); clearError("firstName"); }}
                     placeholder="John"
-                    className={`pl-10 h-11 bg-white/[0.05] text-white placeholder:text-neutral-500 rounded-xl focus:ring-1 focus:ring-white/10 ${
+                    className={`pl-10 h-12 sm:h-11 bg-white/[0.05] text-white placeholder:text-neutral-500 rounded-xl focus:ring-1 focus:ring-white/10 ${
                       errors.firstName ? "border-red-500/60" : "border-white/[0.1] focus:border-white/25"
                     }`}
                   />
@@ -309,13 +309,16 @@ export default function SignUpPage() {
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-neutral-200">Last Name</Label>
-                <Input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Doe"
-                  className="h-11 bg-white/[0.05] border-white/[0.1] text-white placeholder:text-neutral-500 rounded-xl focus:border-white/25 focus:ring-1 focus:ring-white/10"
-                />
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                  <Input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Doe"
+                    className="pl-10 h-12 sm:h-11 bg-white/[0.05] border-white/[0.1] text-white placeholder:text-neutral-500 rounded-xl focus:border-white/25 focus:ring-1 focus:ring-white/10"
+                  />
+                </div>
               </div>
             </div>
 
@@ -328,7 +331,7 @@ export default function SignUpPage() {
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); clearError("email"); }}
                   placeholder="you@example.com"
-                  className={`pl-10 h-11 bg-white/[0.05] text-white placeholder:text-neutral-500 rounded-xl focus:ring-1 focus:ring-white/10 ${
+                  className={`pl-10 h-12 sm:h-11 bg-white/[0.05] text-white placeholder:text-neutral-500 rounded-xl focus:ring-1 focus:ring-white/10 ${
                     errors.email ? "border-red-500/60" : "border-white/[0.1] focus:border-white/25"
                   }`}
                 />
@@ -349,7 +352,7 @@ export default function SignUpPage() {
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); clearError("password"); }}
                   placeholder="Min. 8 characters"
-                  className={`pl-10 pr-11 h-11 bg-white/[0.05] text-white placeholder:text-neutral-500 rounded-xl focus:ring-1 focus:ring-white/10 ${
+                  className={`pl-10 pr-11 h-12 sm:h-11 bg-white/[0.05] text-white placeholder:text-neutral-500 rounded-xl focus:ring-1 focus:ring-white/10 ${
                     errors.password ? "border-red-500/60" : "border-white/[0.1] focus:border-white/25"
                   }`}
                 />
@@ -406,6 +409,9 @@ export default function SignUpPage() {
                 </div>
               )}
             </div>
+
+            {/* Clerk CAPTCHA */}
+            <div id="clerk-captcha" className="py-2" />
 
             <Button
               type="submit"

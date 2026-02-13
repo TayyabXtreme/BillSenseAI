@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
 import {
   Upload,
   FileText,
@@ -12,6 +12,10 @@ import {
   X,
   Check,
   Sparkles,
+  ScanLine,
+  Eye,
+  Brain,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,9 +39,25 @@ export interface BillData {
 interface BillInputProps {
   onBillSubmit: (data: BillData) => void;
   isLoading: boolean;
+  onScanningChange?: (scanning: boolean) => void;
 }
 
-export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
+export interface BillInputRef {
+  isScanning: () => boolean;
+}
+
+// Scanning step definitions
+const SCAN_STEPS = [
+  { icon: Upload, label: "Uploading image...", duration: 800 },
+  { icon: ScanLine, label: "Scanning document...", duration: 1200 },
+  { icon: Eye, label: "Reading text with OCR...", duration: 2000 },
+  { icon: Brain, label: "AI analyzing bill data...", duration: 3000 },
+  { icon: Sparkles, label: "Extracting fields...", duration: 1500 },
+];
+
+export const BillInput = forwardRef<BillInputRef, BillInputProps>(
+  function BillInput({ onBillSubmit, isLoading, onScanningChange }, ref) {
+  const [activeTab, setActiveTab] = useState("upload");
   const [billType, setBillType] = useState<"electricity" | "gas" | "water">("electricity");
   const [units, setUnits] = useState("");
   const [tariff, setTariff] = useState("10");
@@ -49,7 +69,46 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrText, setOcrText] = useState("");
   const [ocrExtracted, setOcrExtracted] = useState(false);
+  const [scanStep, setScanStep] = useState(0);
+  const [showEditForm, setShowEditForm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scanIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Expose scanning state to parent via ref
+  useImperativeHandle(ref, () => ({
+    isScanning: () => ocrLoading,
+  }));
+
+  // Notify parent of scanning state changes
+  useEffect(() => {
+    onScanningChange?.(ocrLoading);
+  }, [ocrLoading, onScanningChange]);
+
+  // Animate scanning steps
+  useEffect(() => {
+    if (ocrLoading) {
+      setScanStep(0);
+      let step = 0;
+      const advanceStep = () => {
+        step++;
+        if (step < SCAN_STEPS.length) {
+          setScanStep(step);
+          scanIntervalRef.current = setTimeout(advanceStep, SCAN_STEPS[step].duration);
+        }
+      };
+      scanIntervalRef.current = setTimeout(advanceStep, SCAN_STEPS[0].duration);
+    } else {
+      if (scanIntervalRef.current) {
+        clearTimeout(scanIntervalRef.current);
+        scanIntervalRef.current = null;
+      }
+    }
+    return () => {
+      if (scanIntervalRef.current) {
+        clearTimeout(scanIntervalRef.current);
+      }
+    };
+  }, [ocrLoading]);
 
   const calculateBill = useCallback(
     (u: number, t: number, e: number) => {
@@ -109,15 +168,13 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
     reader.readAsDataURL(file);
 
     setOcrLoading(true);
-    toast.info("Analyzing bill image with AI...");
+    setShowEditForm(false);
 
     try {
-      // Convert file to base64 and send directly to Gemini Vision API
       const base64 = await new Promise<string>((resolve, reject) => {
         const r = new FileReader();
         r.onloadend = () => {
           const result = r.result as string;
-          // Strip the data:image/xxx;base64, prefix
           resolve(result.split(",")[1]);
         };
         r.onerror = reject;
@@ -126,7 +183,6 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
 
       const mimeType = file.type || "image/jpeg";
 
-      // Send image directly to AI for structured extraction (no tesseract needed)
       const response = await fetch("/api/ai/parse-bill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -135,7 +191,6 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
 
       if (response.ok) {
         const parsed = await response.json();
-        // Set all extracted fields
         if (parsed.unitsConsumed != null && parsed.unitsConsumed > 0) setUnits(parsed.unitsConsumed.toString());
         if (parsed.tariffRate != null && parsed.tariffRate > 0) setTariff(parsed.tariffRate.toString());
         if (parsed.extraCharges != null && parsed.extraCharges > 0) setExtra(parsed.extraCharges.toString());
@@ -145,7 +200,7 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
         setOcrText("AI Vision extraction");
 
         if (parsed.unitsConsumed > 0) {
-          toast.success("Bill data extracted successfully! Review and submit below.", { duration: 4000 });
+          toast.success("Bill data extracted! Review and submit.", { duration: 4000 });
         } else {
           toast.success("Some data extracted — please enter units manually.");
         }
@@ -153,12 +208,14 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
         if (response.status === 503) {
           toast.warning("AI service is busy. Please try again in a moment.");
         } else {
-          toast.warning("AI couldn't parse the bill. Please enter the numbers manually.");
+          toast.warning("AI couldn't parse the bill. Enter the numbers manually.");
+          setShowEditForm(true);
         }
       }
     } catch (error) {
       console.error("Image processing error:", error);
       toast.error("Failed to process image. Please try manual entry.");
+      setShowEditForm(true);
     } finally {
       setOcrLoading(false);
     }
@@ -168,8 +225,108 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
     setUploadedImage(null);
     setOcrText("");
     setOcrExtracted(false);
+    setShowEditForm(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
+  // Form fields component (reused in both tabs)
+  const FormFields = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-foreground text-sm">Units Consumed</Label>
+          <Input
+            type="number"
+            value={units}
+            onChange={(e) => setUnits(e.target.value)}
+            placeholder="e.g., 350"
+            className="h-10 bg-glass border-glass-border text-foreground placeholder:text-muted-foreground rounded-xl focus:border-foreground/25"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-foreground text-sm">
+            Tariff Rate (PKR/unit)
+          </Label>
+          <Input
+            type="number"
+            value={tariff}
+            onChange={(e) => setTariff(e.target.value)}
+            placeholder="10"
+            className="h-10 bg-glass border-glass-border text-foreground placeholder:text-muted-foreground rounded-xl focus:border-foreground/25"
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-foreground text-sm">
+            Extra Charges (PKR)
+          </Label>
+          <Input
+            type="number"
+            value={extra}
+            onChange={(e) => setExtra(e.target.value)}
+            placeholder="0"
+            className="h-10 bg-glass border-glass-border text-foreground placeholder:text-muted-foreground rounded-xl focus:border-foreground/25"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-foreground text-sm">Bill Date</Label>
+          <Input
+            type="date"
+            value={billDate}
+            onChange={(e) => setBillDate(e.target.value)}
+            className="h-10 bg-glass border-glass-border text-foreground rounded-xl focus:border-foreground/25 dark:[color-scheme:dark] [color-scheme:light]"
+          />
+        </div>
+      </div>
+
+      {/* Live preview */}
+      {units && tariff && (
+        <div className="bg-glass-strong border border-glass-border rounded-xl p-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-neutral-600 dark:text-neutral-300">Estimated Total</span>
+            <span className="text-xl font-bold text-foreground">
+              {calculateBill(
+                parseFloat(units) || 0,
+                parseFloat(tariff) || 0,
+                parseFloat(extra) || 0
+              ).totalAmount.toLocaleString("en-PK", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              })}{" "}
+              <span className="text-sm font-normal text-muted-foreground">
+                PKR
+              </span>
+            </span>
+          </div>
+        </div>
+      )}
+
+      <Button
+        onClick={handleManualSubmit}
+        disabled={isLoading || !units}
+        className={`w-full h-11 font-semibold shadow-lg ${
+          ocrExtracted
+            ? "bg-green-600 text-white hover:bg-green-700 shadow-green-500/10"
+            : "bg-white text-black hover:bg-neutral-200 shadow-white/5"
+        }`}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            Processing...
+          </>
+        ) : ocrExtracted ? (
+          <>
+            <Sparkles className="h-4 w-4 mr-2" />
+            Analyze Extracted Bill
+          </>
+        ) : (
+          "Analyze Bill"
+        )}
+      </Button>
+    </div>
+  );
 
   return (
     <div className="rounded-2xl p-6 bg-glass border border-border backdrop-blur-xl shadow-lg shadow-black/20">
@@ -222,7 +379,7 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
         </button>
       </div>
 
-      <Tabs defaultValue="manual" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full bg-glass border border-glass-border mb-6 h-11">
           <TabsTrigger
             value="upload"
@@ -240,7 +397,7 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
           </TabsTrigger>
         </TabsList>
 
-        {/* Upload Tab */}
+        {/* Upload Tab — only upload area + scan animation + post-scan results */}
         <TabsContent value="upload" className="space-y-4">
           {!uploadedImage ? (
             <label className="flex flex-col items-center justify-center w-full h-48 rounded-xl bg-glass border border-dashed border-glass-border cursor-pointer hover:bg-glass-strong hover:border-foreground/25 transition-all group">
@@ -260,40 +417,106 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
               />
             </label>
           ) : (
-            <div className="relative">
+            <div className="relative overflow-hidden rounded-xl border border-glass-border">
               <img
                 src={uploadedImage}
                 alt="Bill"
-                className="w-full h-48 object-cover rounded-xl border border-glass-border"
+                className={`w-full h-48 object-cover transition-all duration-500 ${ocrLoading ? "brightness-50 scale-105" : ""}`}
               />
-              <button
-                onClick={clearUpload}
-                className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 backdrop-blur-sm text-white hover:bg-black/80 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
+
+              {/* Scanning animation overlay */}
               {ocrLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-xl">
-                  <div className="flex items-center gap-3 text-white">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span className="text-sm">Processing with AI...</span>
+                <>
+                  {/* Scanning line animation */}
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div
+                      className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-green-400/80 to-transparent shadow-[0_0_15px_rgba(74,222,128,0.6)]"
+                      style={{
+                        animation: "scanLine 2s ease-in-out infinite",
+                      }}
+                    />
+                    <style>{`
+                      @keyframes scanLine {
+                        0% { top: 0%; opacity: 0; }
+                        10% { opacity: 1; }
+                        90% { opacity: 1; }
+                        100% { top: 100%; opacity: 0; }
+                      }
+                    `}</style>
                   </div>
+
+                  {/* Corner brackets */}
+                  <div className="absolute inset-3 pointer-events-none">
+                    <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-green-400/60 rounded-tl animate-pulse" />
+                    <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-green-400/60 rounded-tr animate-pulse" />
+                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-green-400/60 rounded-bl animate-pulse" />
+                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-green-400/60 rounded-br animate-pulse" />
+                  </div>
+
+                  {/* Step indicator */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                    <div className="p-3 rounded-2xl bg-black/60 backdrop-blur-sm border border-white/10">
+                      {(() => {
+                        const StepIcon = SCAN_STEPS[scanStep]?.icon || Loader2;
+                        return <StepIcon className="h-6 w-6 text-green-400 animate-pulse" />;
+                      })()}
+                    </div>
+                    <div className="bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/10">
+                      <p className="text-sm text-white font-medium text-center">
+                        {SCAN_STEPS[scanStep]?.label || "Processing..."}
+                      </p>
+                    </div>
+                    {/* Progress dots */}
+                    <div className="flex items-center gap-1.5">
+                      {SCAN_STEPS.map((_, i) => (
+                        <div
+                          key={i}
+                          className={`h-1.5 rounded-full transition-all duration-500 ${
+                            i <= scanStep
+                              ? "w-4 bg-green-400"
+                              : "w-1.5 bg-white/20"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Success overlay */}
+              {!ocrLoading && ocrExtracted && (
+                <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/20 backdrop-blur-sm border border-green-500/30">
+                  <CheckCircle2 className="h-4 w-4 text-green-400 shrink-0" />
+                  <span className="text-xs text-green-300 font-medium">Data extracted successfully</span>
                 </div>
               )}
-              {!ocrLoading && ocrText && (
-                <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded-lg bg-green-500/20 text-green-400 text-xs">
-                  <Check className="h-3 w-3" />
-                  Data extracted
-                </div>
+
+              {/* Clear button */}
+              {!ocrLoading && (
+                <button
+                  onClick={clearUpload}
+                  className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 backdrop-blur-sm text-white hover:bg-black/80 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               )}
             </div>
           )}
 
-          {ocrExtracted && (
+          {/* Extracted data summary card */}
+          {ocrExtracted && !ocrLoading && (
             <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-green-500" />
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">AI Extracted Data</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-green-500" />
+                  <span className="text-sm font-medium text-green-600 dark:text-green-400">AI Extracted Data</span>
+                </div>
+                <button
+                  onClick={() => setShowEditForm(!showEditForm)}
+                  className="text-xs text-green-500 hover:text-green-400 font-medium transition-colors underline underline-offset-2"
+                >
+                  {showEditForm ? "Hide Editor" : "Edit Values"}
+                </button>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {units && (
@@ -323,123 +546,42 @@ export function BillInput({ onBillSubmit, isLoading }: BillInputProps) {
                   <span className="text-foreground font-medium capitalize">{billType}</span>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Review the extracted data below and click Analyze to proceed.</p>
+              <p className="text-xs text-muted-foreground">Review the data and click Analyze to proceed.</p>
             </div>
           )}
 
-          {ocrText && !ocrExtracted && (
-            <div className="bg-glass border border-glass-border rounded-xl p-3">
-              <p className="text-xs text-muted-foreground mb-1">Extracted Text:</p>
-              <p className="text-xs text-neutral-600 dark:text-neutral-300 max-h-20 overflow-y-auto font-mono">
-                {ocrText.slice(0, 300)}
-                {ocrText.length > 300 && "..."}
-              </p>
-            </div>
+          {/* Editable form after extraction or on failure */}
+          {(showEditForm) && !ocrLoading && (
+            <FormFields />
+          )}
+
+          {/* Quick submit button when extracted and form hidden */}
+          {ocrExtracted && !showEditForm && !ocrLoading && (
+            <Button
+              onClick={handleManualSubmit}
+              disabled={isLoading || !units}
+              className="w-full h-11 font-semibold shadow-lg bg-green-600 text-white hover:bg-green-700 shadow-green-500/10"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Analyze Extracted Bill
+                </>
+              )}
+            </Button>
           )}
         </TabsContent>
 
-        {/* Manual Tab */}
+        {/* Manual Tab — shows full form fields */}
         <TabsContent value="manual" className="space-y-4">
-          {/* This space intentionally left for the shared form below */}
+          <FormFields />
         </TabsContent>
       </Tabs>
-
-      {/* Shared form fields */}
-      <div className="space-y-4 mt-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-foreground text-sm">Units Consumed</Label>
-            <Input
-              type="number"
-              value={units}
-              onChange={(e) => setUnits(e.target.value)}
-              placeholder="e.g., 350"
-              className="h-10 bg-glass border-glass-border text-foreground placeholder:text-muted-foreground rounded-xl focus:border-foreground/25"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-foreground text-sm">
-              Tariff Rate (PKR/unit)
-            </Label>
-            <Input
-              type="number"
-              value={tariff}
-              onChange={(e) => setTariff(e.target.value)}
-              placeholder="10"
-              className="h-10 bg-glass border-glass-border text-foreground placeholder:text-muted-foreground rounded-xl focus:border-foreground/25"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-foreground text-sm">
-              Extra Charges (PKR)
-            </Label>
-            <Input
-              type="number"
-              value={extra}
-              onChange={(e) => setExtra(e.target.value)}
-              placeholder="0"
-              className="h-10 bg-glass border-glass-border text-foreground placeholder:text-muted-foreground rounded-xl focus:border-foreground/25"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-foreground text-sm">Bill Date</Label>
-            <Input
-              type="date"
-              value={billDate}
-              onChange={(e) => setBillDate(e.target.value)}
-              className="h-10 bg-glass border-glass-border text-foreground rounded-xl focus:border-foreground/25 dark:[color-scheme:dark] [color-scheme:light]"
-            />
-          </div>
-        </div>
-
-        {/* Live preview */}
-        {units && tariff && (
-          <div className="bg-glass-strong border border-glass-border rounded-xl p-4">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-neutral-600 dark:text-neutral-300">Estimated Total</span>
-              <span className="text-xl font-bold text-foreground">
-                {calculateBill(
-                  parseFloat(units) || 0,
-                  parseFloat(tariff) || 0,
-                  parseFloat(extra) || 0
-                ).totalAmount.toLocaleString("en-PK", {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-                })}{" "}
-                <span className="text-sm font-normal text-muted-foreground">
-                  PKR
-                </span>
-              </span>
-            </div>
-          </div>
-        )}
-
-        <Button
-          onClick={handleManualSubmit}
-          disabled={isLoading || !units}
-          className={`w-full h-11 font-semibold shadow-lg ${
-            ocrExtracted 
-              ? "bg-green-600 text-white hover:bg-green-700 shadow-green-500/10" 
-              : "bg-white text-black hover:bg-neutral-200 shadow-white/5"
-          }`}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Processing...
-            </>
-          ) : ocrExtracted ? (
-            <>
-              <Sparkles className="h-4 w-4 mr-2" />
-              Analyze Extracted Bill
-            </>
-          ) : (
-            "Analyze Bill"
-          )}
-        </Button>
-      </div>
     </div>
   );
-}
+});

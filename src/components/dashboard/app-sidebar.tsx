@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUser, UserButton } from "@clerk/nextjs";
@@ -8,7 +8,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { toast } from "sonner";
-import { BillInput, type BillData } from "@/components/dashboard/bill-input";
+import { BillInput, type BillData, type BillInputRef } from "@/components/dashboard/bill-input";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Sidebar,
@@ -73,6 +73,33 @@ export function AppSidebar() {
   const { toggleSidebar, state } = useSidebar();
   const [showNewAnalysis, setShowNewAnalysis] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isScanningActive, setIsScanningActive] = useState(false);
+  const billInputRef = useRef<BillInputRef>(null);
+
+  const handleScanningChange = useCallback((scanning: boolean) => {
+    setIsScanningActive(scanning);
+  }, []);
+
+  const handleDialogChange = useCallback((open: boolean) => {
+    if (!open && isScanningActive) {
+      // User closed dialog while scanning is in progress
+      setShowNewAnalysis(false);
+      toast.info("Scanning continues in background...", {
+        duration: Infinity,
+        action: {
+          label: "Reopen",
+          onClick: () => setShowNewAnalysis(true),
+        },
+        id: "scanning-bg-toast",
+      });
+    } else {
+      setShowNewAnalysis(open);
+      // Dismiss the background toast when dialog reopens
+      if (open) {
+        toast.dismiss("scanning-bg-toast");
+      }
+    }
+  }, [isScanningActive]);
 
   // Bill management state
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
@@ -122,6 +149,13 @@ export function AppSidebar() {
       setTimeout(() => renameInputRef.current?.focus(), 100);
     }
   }, [renameDialogOpen]);
+
+  // When scanning finishes in background, dismiss bg toast and reopen dialog
+  useEffect(() => {
+    if (!isScanningActive && !showNewAnalysis) {
+      toast.dismiss("scanning-bg-toast");
+    }
+  }, [isScanningActive, showNewAnalysis]);
 
   const handleBillSubmit = async (data: BillData) => {
     if (!user) return;
@@ -309,6 +343,7 @@ export function AppSidebar() {
 
                 <SidebarMenuItem>
                   <SidebarMenuButton
+                    data-new-analysis
                     onClick={() => setShowNewAnalysis(true)}
                     className="h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-glass-hover transition-colors cursor-pointer"
                   >
@@ -546,7 +581,7 @@ export function AppSidebar() {
       </Sidebar>
 
       {/* New Analysis Dialog */}
-      <Dialog open={showNewAnalysis} onOpenChange={setShowNewAnalysis}>
+      <Dialog open={showNewAnalysis} onOpenChange={handleDialogChange}>
         <DialogContent className="sm:max-w-[550px] bg-background border-border p-0 gap-0 max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-foreground text-lg flex items-center gap-2">
@@ -556,8 +591,10 @@ export function AppSidebar() {
           </DialogHeader>
           <div className="p-6 pt-4">
             <BillInput
+              ref={billInputRef}
               onBillSubmit={handleBillSubmit}
               isLoading={isSubmitting}
+              onScanningChange={handleScanningChange}
             />
           </div>
         </DialogContent>
