@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useSignIn } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import { useSignIn, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Zap, Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,14 @@ import { validateEmail } from "@/lib/validation";
 
 export default function SignInPage() {
   const { signIn, isLoaded, setActive } = useSignIn();
+  const { user, isLoaded: userLoaded } = useUser();
   const router = useRouter();
+
+  useEffect(() => {
+    if (userLoaded && user) {
+      router.push("/dashboard");
+    }
+  }, [user, userLoaded, router]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
